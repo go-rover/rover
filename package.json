@@ -1,6 +1,6 @@
 {
   "name": "@vav/rover",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Autonomous Meteora DLMM liquidity provider agent for Solana — vav.sh Rover",
   "type": "module",
   "bin": {
