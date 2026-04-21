@@ -46,7 +46,7 @@ import { closePosition, getActiveBin, getMyPositions } from "@/tools/pool";
 import { getTopCandidates } from "@/tools/scan";
 import { getWalletBalances } from "@/tools/treasury";
 
-log("startup", "DLMM LP Agent starting...");
+log("startup", "Rover starting...");
 log("startup", `Mode: ${process.env.DRY_RUN === "true" ? "DRY RUN" : "LIVE"}`);
 log("startup", `Model: ${process.env.LLM_MODEL || "hermes-3-405b"}`);
 ensureAgentId();
@@ -986,7 +986,7 @@ Summarize the current portfolio health, total fees earned, and performance of al
   _cronTasks._pnlPollInterval = pnlPollInterval;
   log(
     "cron",
-    `Cycles started — management every ${config.schedule.managementIntervalMin}m, screening every ${config.schedule.screeningIntervalMin}m`
+    `Cycles started — management every ${config.schedule.managementIntervalMin}m, scan every ${config.schedule.screeningIntervalMin}m`
   );
 }
 
@@ -1925,7 +1925,7 @@ if (isTTY) {
   // ── Startup: show wallet + top candidates ──
   console.log(`
 ╔═══════════════════════════════════════════╗
-║         DLMM LP Agent — Ready             ║
+║              Rover — Ready                ║
 ╚═══════════════════════════════════════════╝
 `);
 

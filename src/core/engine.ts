@@ -319,7 +319,7 @@ export async function agentLoop(
 
   const _emptyStreak = 0;
   for (let step = 0; step < maxSteps; step++) {
-    log("agent", `Step ${step + 1}/${maxSteps}`);
+    log("rover", `Step ${step + 1}/${maxSteps}`);
 
     try {
       const activeModel = model || DEFAULT_MODEL;
@@ -357,7 +357,7 @@ export async function agentLoop(
           }
           if (toolChoice === "required" && isToolChoiceRequiredError(error)) {
             toolChoice = "auto";
-            log("agent", "Provider rejected tool_choice=required — retrying with tool_choice=auto");
+            log("rover", "Provider rejected tool_choice=required — retrying with tool_choice=auto");
             attempt -= 1;
             continue;
           }
@@ -369,7 +369,7 @@ export async function agentLoop(
           const wait = (attempt + 1) * 5000;
           if (attempt === 1 && usedModel !== FALLBACK_MODEL) {
             usedModel = FALLBACK_MODEL;
-            log("agent", `Switching to fallback model ${FALLBACK_MODEL}`);
+            log("rover", `Switching to fallback model ${FALLBACK_MODEL}`);
           } else {
             log(
               "agent",
@@ -419,7 +419,7 @@ export async function agentLoop(
         // Hermes sometimes returns null content — pop the empty message and retry once
         if (!msg.content) {
           messages.pop(); // remove the empty assistant message
-          log("agent", "Empty response, retrying...");
+          log("rover", "Empty response, retrying...");
           continue;
         }
         if (mustUseRealTool && !sawToolCall) {
@@ -445,8 +445,8 @@ export async function agentLoop(
           });
           continue;
         }
-        log("agent", "Final answer reached");
-        log("agent", msg.content);
+        log("rover", "Cycle summary ready");
+        log("rover", msg.content);
         return { content: msg.content, userMessage: goal };
       }
       sawToolCall = true;
@@ -495,7 +495,7 @@ export async function agentLoop(
 
           // Block once-per-session tools from firing a second time
           if (ONCE_PER_SESSION.has(functionName) && firedOnce.has(functionName)) {
-            log("agent", `Blocked duplicate ${functionName} call — already executed this session`);
+            log("rover", `Blocked duplicate ${functionName} call — already executed this session`);
             await onToolFinish?.({
               name: functionName,
               args: functionArgs,
@@ -546,7 +546,7 @@ export async function agentLoop(
 
       // If it's a rate limit, wait and retry
       if (error.status === 429) {
-        log("agent", "Rate limited, waiting 30s...");
+        log("rover", "Rate limited, waiting 30s...");
         await sleep(30000);
         continue;
       }
@@ -556,7 +556,7 @@ export async function agentLoop(
     }
   }
 
-  log("agent", "Max steps reached without final answer");
+  log("rover", "Max steps reached without final answer");
   return { content: "Max steps reached. Review logs for partial progress.", userMessage: goal };
 }
 
