@@ -7,6 +7,7 @@ import { isBaseMintOnCooldown, isPoolOnCooldown } from "@/core/poollog";
 import { getRelayApiBase, getRelayApiHeaders } from "@/integrations/relay-api";
 import { log } from "@/platform/logger";
 import { confirmIndicatorPreset } from "@/tools/chart-indicators";
+import { getMyPositions } from "@/tools/pool";
 
 const DATAPI_JUP = "https://datapi.jup.ag/v1";
 
@@ -287,12 +288,10 @@ export async function discoverPools({ page_size = 50 } = {}) {
  * Hard filters applied in code, agent decides which to deploy into.
  */
 export async function getTopCandidates({ limit = 10 } = {}) {
-  const { config } = await import("../config.js");
   const { pools } = await discoverPools({ page_size: 50 });
   const filteredOut = [];
 
   // Exclude pools where the wallet already has an open position
-  const { getMyPositions } = await import("./dlmm.js");
   const { positions } = await getMyPositions();
   const occupiedPools = new Set(positions.map((p) => p.pool));
   const occupiedMints = new Set(positions.map((p) => p.base_mint).filter(Boolean));

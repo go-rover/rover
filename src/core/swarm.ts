@@ -58,7 +58,7 @@ export async function sendBeacon(payload: {
     logs: Array.isArray(payload.logs) ? payload.logs : [],
     stakes: Array.isArray(payload.stakes) ? payload.stakes : [],
     thresholds: payload.thresholds || {},
-    roverVersion: payload.roverVersion ?? null,
+    roverVersion: sanitizeText(payload.roverVersion, 80) || "unknown",
   };
   const signature = signBeacon(unsigned, scoutKey());
   const body = { ...unsigned, signature };
@@ -75,8 +75,12 @@ export async function sendBeacon(payload: {
 
   const json = await res.json().catch(() => null);
   if (!res.ok) {
-    log("swarm_warn", `Beacon rejected: HTTP ${res.status}`);
-    return { ok: false, status: res.status, error: json?.error || "BEACON_REJECTED" };
+    const details = json?.error || json?.message || null;
+    log(
+      "swarm_warn",
+      `Beacon rejected: HTTP ${res.status}${details ? ` (${sanitizeText(details, 180)})` : ""}`
+    );
+    return { ok: false, status: res.status, error: details || "BEACON_REJECTED", raw: json };
   }
   return json;
 }

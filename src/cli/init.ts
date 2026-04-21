@@ -338,11 +338,18 @@ const LLM_PROVIDERS = [
     modelDefault: "nousresearch/hermes-3-llama-3.1-405b",
   },
   {
-    label: "MiniMax      (api.minimax.io)",
-    key: "minimax",
-    baseUrl: "https://api.minimax.io/v1",
-    keyHint: "your MiniMax API key",
-    modelDefault: "MiniMax-Text-01",
+    label: "Claude       (via OpenRouter)",
+    key: "claude_openrouter",
+    baseUrl: "https://openrouter.ai/api/v1",
+    keyHint: "sk-or-...",
+    modelDefault: "anthropic/claude-3.5-sonnet",
+  },
+  {
+    label: "Gemini       (Google OpenAI-compatible endpoint)",
+    key: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    keyHint: "your Google API key",
+    modelDefault: "gemini-2.0-flash",
   },
   {
     label: "OpenAI       (api.openai.com)",
@@ -409,6 +416,9 @@ const envMap = {
   ...(isKept(heliusKey) ? {} : { HELIUS_API_KEY: heliusKey }),
   ...(isKept(telegramToken) ? {} : { TELEGRAM_BOT_TOKEN: telegramToken }),
   ...(telegramChatId ? { TELEGRAM_CHAT_ID: telegramChatId } : {}),
+  ...(llmBaseUrl ? { LLM_BASE_URL: llmBaseUrl } : {}),
+  ...(_llmApiKey ? { LLM_API_KEY: _llmApiKey } : {}),
+  ...(llmModel ? { LLM_MODEL: llmModel } : {}),
   DRY_RUN: dryRun ? "true" : "false",
 };
 fs.writeFileSync(ENV_PATH, buildEnv(envMap));
@@ -416,7 +426,7 @@ fs.writeFileSync(ENV_PATH, buildEnv(envMap));
 // ─── Write rover.config.ts ────────────────────────────────────────────────────
 const roverConfig = {
   swarmUrl: "https://swarm.vav.sh",
-  scoutKey: "sc_xxx",
+  scoutKey: "sc_vav_xxx",
   dryRun: true,
   preset: presetChoice.key === "safe" ? "conservative" : presetChoice.key,
 };
@@ -454,7 +464,7 @@ console.log(`
   OOR close:    after ${outOfRangeWaitMinutes} min
   Repeat CD:    ${repeatDeployCooldownEnabled ? `${repeatDeployCooldownTriggerCount}x / ${repeatDeployCooldownHours}h / ${repeatDeployCooldownScope}` : "disabled"}
 
-  Cycles:       management every ${managementIntervalMin}m  ·  screening every ${screeningIntervalMin}m
+  Cycles:       management every ${managementIntervalMin}m  ·  scan every ${screeningIntervalMin}m
   Provider:     ${provider.label.split("(")[0].trim()}
   Model:        ${llmModel}
   Base URL:     ${llmBaseUrl}

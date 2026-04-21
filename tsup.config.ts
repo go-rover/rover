@@ -2,8 +2,8 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
-    rover: "src/rover.ts",
-    cmd: "src/cmd.ts",
+    rover: "src/runtime/rover.ts",
+    cmd: "src/cli/cmd.ts",
   },
   format: ["esm"],
   target: "node20",

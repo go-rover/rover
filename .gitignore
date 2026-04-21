@@ -16,6 +16,7 @@ build/
 !.env.example
 
 # ── User config (contains scoutKey, wallet key, RPC URL) ──────
+user-config.json
 rover.config.ts
 rover.*.config.ts
 !rover.config.example.ts

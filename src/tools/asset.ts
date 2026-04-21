@@ -1,4 +1,7 @@
 // @ts-nocheck
+import { listSmartWallets } from "@/core/tracker";
+import { getAdvancedInfo, getClusterList } from "@/tools/okx";
+
 const DATAPI_BASE = "https://datapi.jup.ag/v1";
 
 /**
@@ -65,7 +68,6 @@ export async function getTokenInfo({ query }) {
 
   // Enrich first result with OKX smart money + risk data (public endpoint, no key needed)
   if (results[0]?.mint) {
-    const { getAdvancedInfo, getClusterList } = await import("./okx.js");
     const [adv, clusters] = await Promise.all([
       getAdvancedInfo(results[0].mint).catch(() => null),
       getClusterList(results[0].mint).catch(() => []),
@@ -134,7 +136,6 @@ export async function getTokenHolders({ mint, limit = 20 }) {
   const top10Pct = realHolders.slice(0, 10).reduce((s, h) => s + (Number(h.pct) || 0), 0);
 
   // ─── Bundle / Cluster Analysis (OKX) ─────────────────────────
-  const { getAdvancedInfo, getClusterList } = await import("./okx.js");
   const [advancedData, _clusterList] = await Promise.all([
     getAdvancedInfo(mint).catch(() => null),
     getClusterList(mint).catch(() => []),
@@ -142,7 +143,6 @@ export async function getTokenHolders({ mint, limit = 20 }) {
 
   // ─── Smart Wallet / KOL Cross-reference ──────────────────────
   // Use targeted holders endpoint — only returns matching wallets, no noise
-  const { listSmartWallets } = await import("../smart-wallets.js");
   const { wallets: smartWallets } = listSmartWallets();
   const smartWalletsHolding = [];
 

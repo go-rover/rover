@@ -46,43 +46,43 @@ Output: { wallet, sol, sol_usd, usdc, tokens: [{mint, symbol, balance, usd_value
 \`\`\`
 
 ### vav-agent positions
-Returns all open DLMM positions.
+Returns all open Stakes (DLMM positions).
 \`\`\`
-Output: { positions: [{position, pool, pair, in_range, age_minutes, ...}], total_positions }
+Output: { stakes: [{position, pool, pair, in_range, age_minutes, ...}], total_stakes }
 \`\`\`
 
 ### vav-agent pnl <position_address>
-Returns PnL for a specific position.
+Returns PnL for a specific Stake (position).
 \`\`\`
 Output: { pnl_pct, pnl_usd, unclaimed_fee_usd, all_time_fees_usd, current_value_usd, lower_bin, upper_bin, active_bin }
 \`\`\`
 
 ### vav-agent screen [--dry-run] [--silent]
-Runs one AI screening cycle to find and deploy new positions.
+Runs one AI scan cycle to find and (optionally) enter new Stakes.
 \`\`\`
 Output: { done: true, report: "..." }
 \`\`\`
 
 ### vav-agent manage [--dry-run] [--silent]
-Runs one AI management cycle over open positions.
+Runs one management cycle over open Stakes.
 \`\`\`
 Output: { done: true, report: "..." }
 \`\`\`
 
 ### vav-agent deploy --pool <addr> --amount <sol> [--bins-below 69] [--bins-above 0] [--strategy bid_ask|spot] [--dry-run]
-Deploys a new LP position. All safety checks apply.
+Enters a new Stake (LP position). All safety checks apply.
 \`\`\`
 Output: { success, position, pool_name, txs, price_range, bin_step }
 \`\`\`
 
 ### vav-agent claim --position <addr>
-Claims accumulated swap fees for a position.
+Claims accumulated swap fees for a Stake.
 \`\`\`
 Output: { success, position, txs, base_mint }
 \`\`\`
 
 ### vav-agent close --position <addr> [--skip-swap] [--dry-run]
-Closes a position. Auto-swaps base token to SOL unless --skip-swap.
+Exits a Stake. Auto-swaps base token to SOL unless --skip-swap.
 \`\`\`
 Output: { success, pnl_pct, pnl_usd, txs, base_mint }
 \`\`\`
@@ -94,7 +94,7 @@ Output: { success, tx, input_amount, output_amount }
 \`\`\`
 
 ### vav-agent candidates [--limit 5]
-Returns top pool candidates fully enriched: pool metrics, token audit, holders, smart wallets, narrative, active bin, pool memory.
+Returns top pool candidates fully enriched: pool metrics, token audit, holders, smart wallets, narrative, active bin, and pool memory.
 \`\`\`
 Output: { candidates: [{name, pool, bin_step, fee_pct, volume, tvl, organic_score, active_bin, smart_wallets, token: {holders, audit, global_fees_sol, ...}, holders, narrative, pool_memory}] }
 \`\`\`
@@ -193,7 +193,7 @@ Output: { count, blacklist: [{mint, symbol, reason, added_at}] }
 \`\`\`
 
 ### vav-agent performance [--limit 200]
-Shows all closed position performance history with summary stats.
+Shows closed Stake performance history with summary stats.
 \`\`\`
 Output: { summary: { total_positions_closed, total_pnl_usd, avg_pnl_pct, win_rate_pct, total_lessons }, count, positions: [...] }
 \`\`\`
@@ -205,7 +205,7 @@ Output: { count, pending, processed, signals: [{id, symbol, pool, author, channe
 \`\`\`
 
 ### vav-agent start [--dry-run]
-Starts the autonomous agent with cron jobs (management + screening).
+Starts Rover in autonomous mode with cron jobs (management + scan).
 
 ## Flags
 --dry-run     Skip all on-chain transactions
@@ -280,7 +280,7 @@ switch (subcommand) {
     const { getPerformanceSummary } = await import("@/core/memory");
     const { ensureAgentId, isSwarmEnabled } = await import("@/core/swarm");
     const { getLastBeaconSentAt } = await import("@/core/beacon-guard");
-    const agentId = ensureAgentId();
+    const roverId = ensureAgentId();
 
     const [balances, positions] = await Promise.all([
       getWalletBalances({}).catch((e) => ({ error: e?.message || String(e) })),
@@ -289,17 +289,26 @@ switch (subcommand) {
       })),
     ]);
 
+    const stakes =
+      positions?.error
+        ? positions
+        : {
+            total_stakes: positions?.total_positions ?? positions?.positions?.length ?? 0,
+            stakes: positions?.positions ?? [],
+          };
+
     out({
       ok: true,
-      mode: process.env.DRY_RUN === "true" ? "DRY_RUN" : "LIVE",
+      running: true,
+      mode: process.env.DRY_RUN === "true" ? "dry_run" : "live",
       swarm: {
         enabled: isSwarmEnabled(),
         url: process.env.VAV_SWARM_API_BASE || roverConfig.swarmUrl || null,
-        agentId,
+        roverId,
         lastBeaconSentAt: getLastBeaconSentAt(),
       },
       balances,
-      stakes: positions,
+      stakes,
       performance: getPerformanceSummary(),
     });
     break;
@@ -315,7 +324,11 @@ switch (subcommand) {
   // ── positions ────────────────────────────────────────────────────
   case "positions": {
     const { getMyPositions } = await import("@/tools/pool");
-    out(await getMyPositions({ force: true }));
+    const res = await getMyPositions({ force: true });
+    out({
+      total_stakes: res?.total_positions ?? res?.positions?.length ?? 0,
+      stakes: res?.positions ?? [],
+    });
     break;
   }
 

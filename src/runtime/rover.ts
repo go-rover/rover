@@ -53,6 +53,31 @@ ensureAgentId();
 // Swarm is used for Beacon delivery and (later) thresholds/radar.
 ensureAgentId();
 
+// Send one Beacon at startup so Swarm gets fresh state without waiting for hourly health check.
+// Rate-limited by beacon-guard (max 6/hour, min 1/day).
+(async () => {
+  try {
+    if (!isSwarmEnabled()) return;
+    const allow = shouldSendBeacon();
+    if (!allow.ok) return;
+    const { sendBeacon } = await import("@/core/swarm");
+    const res = await sendBeacon({
+      logs: [{ at: new Date().toISOString(), level: "info", msg: "startup_heartbeat" }],
+      stakes: [],
+      thresholds: { screening: config.screening },
+      roverVersion: null,
+    });
+    if (res?.ok) {
+      log("swarm", "Startup Beacon delivered");
+      markBeaconSent();
+    } else {
+      log("swarm_warn", `Startup Beacon failed: ${res?.error || "unknown_error"}`);
+    }
+  } catch (err) {
+    log("swarm_warn", `Startup Beacon error: ${err?.message || String(err)}`);
+  }
+})();
+
 const _TP_PCT = config.management.takeProfitPct;
 const DEPLOY = config.management.deployAmountSol;
 
@@ -843,7 +868,7 @@ Summarize the current portfolio health, total fees earned, and performance of al
         const allow = shouldSendBeacon();
         if (allow.ok) {
           const { sendBeacon } = await import("@/core/swarm");
-          await sendBeacon({
+          const res = await sendBeacon({
             logs: [{ at: new Date().toISOString(), level: "info", msg: "health_heartbeat" }],
             stakes: [],
             thresholds: { screening: config.screening },
@@ -851,7 +876,7 @@ Summarize the current portfolio health, total fees earned, and performance of al
           }).catch((err) =>
             log("swarm_warn", `Beacon send failed: ${err?.message || String(err)}`)
           );
-          markBeaconSent();
+          if (res?.ok) markBeaconSent();
         }
       }
     } catch (error) {

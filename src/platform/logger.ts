@@ -16,19 +16,24 @@ if (!fs.existsSync(LOG_DIR)) {
  * General log function.
  */
 export function log(category, message) {
-  const level = category.includes("error") ? "error" : category.includes("warn") ? "warn" : "info";
+  const rawCategory = String(category || "info");
+  const normalizedCategory = rawCategory
+    .replace(/\bscreening\b/gi, "scan")
+    .replace(/\bagent\b/gi, "rover");
+
+  const level = rawCategory.includes("error") ? "error" : rawCategory.includes("warn") ? "warn" : "info";
 
   if (LEVELS[level] < currentLevel) return;
 
   const timestamp = new Date().toISOString();
-  const line = `[${timestamp}] [${category.toUpperCase()}] ${message}`;
+  const line = `[${timestamp}] [${normalizedCategory.toUpperCase()}] ${message}`;
 
   // Console output
   console.log(line);
 
   // File output (daily rotation)
   const dateStr = timestamp.split("T")[0];
-  const logFile = path.join(LOG_DIR, `agent-${dateStr}.log`);
+  const logFile = path.join(LOG_DIR, `rover-${dateStr}.log`);
   fs.appendFileSync(logFile, `${line}\n`);
 }
 
@@ -50,7 +55,7 @@ function actionHint(action) {
     case "get_pool_detail":
       return ` ${r.name || a.pool_address?.slice(0, 8) || ""}`;
     case "get_my_positions":
-      return ` ${r.total_positions ?? ""} positions`;
+      return ` ${r.total_positions ?? ""} stakes`;
     case "get_wallet_balance":
       return ` ${r.sol ?? ""} SOL`;
     case "get_top_candidates":
