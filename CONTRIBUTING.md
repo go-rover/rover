@@ -10,7 +10,7 @@ maintainable.
    mode at least once.
 2. Read [`docs/architecture.md`](./docs/architecture.md) to understand the
    Cycle loop and the role of each module.
-3. Check [open issues](https://github.com/gorover/rover/issues) and the
+3. Check [open issues](https://github.com/go-rover/rover/issues) and the
    [GoRover ROADMAP](https://gorover.xyz/docs) —
    large features should be discussed first.
 

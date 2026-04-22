@@ -74,10 +74,10 @@
   "homepage": "https://gorover.xyz",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/gorover/rover.git"
+    "url": "git+ssh://git@github.com/go-rover/rover.git"
   },
   "bugs": {
-    "url": "https://github.com/gorover/rover/issues"
+    "url": "https://github.com/go-rover/rover/issues"
   },
   "license": "BUSL-1.1",
   "author": "GoRover <dev@gorover.xyz> (https://gorover.xyz)",

@@ -53,7 +53,7 @@ Agents are powered via **OpenRouter** and can be swapped for any compatible mode
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/gorover/rover
+git clone https://github.com/go-rover/rover
 cd rover
 bun install
 ```
