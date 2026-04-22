@@ -63,7 +63,7 @@ export async function sendBeacon(payload: {
     logs: Array.isArray(payload.logs) ? payload.logs : [],
     stakes: Array.isArray(payload.stakes) ? payload.stakes : [],
     thresholds: payload.thresholds || {},
-    roverVersion: sanitizeText(payload.roverVersion, 80) || "unknown",
+    version: sanitizeText(payload.roverVersion, 80) || "0.1.0",
     ...(rid ? { roverId: rid } : {}),
   };
   const signature = signBeacon(unsigned, scoutKey());
