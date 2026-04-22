@@ -64,7 +64,6 @@ export async function sendBeacon(payload: {
     stakes: Array.isArray(payload.stakes) ? payload.stakes : [],
     thresholds: payload.thresholds || {},
     version: sanitizeText(payload.roverVersion, 80) || "0.1.0",
-    ...(rid ? { roverId: rid } : {}),
   };
   const signature = signBeacon(unsigned, scoutKey());
   const body = { ...unsigned, signature };
