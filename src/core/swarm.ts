@@ -26,11 +26,11 @@ function swarmBaseUrl() {
 
 function scoutKey() {
   // Swarm uses the Scout key for both auth and HMAC signature verification.
-  return sanitizeText(process.env.VAV_SCOUT_KEY || config.swarm?.scoutKey || "", 600) || "";
+  return sanitizeText(process.env.GOROVER_SCOUT_KEY || config.swarm?.scoutKey || "", 600) || "";
 }
 
 function roverId() {
-  return sanitizeText(process.env.VAV_ROVER_ID || config.swarm?.roverId || "", 200) || null;
+  return sanitizeText(process.env.GOROVER_ROVER_ID || config.swarm?.roverId || "", 200) || null;
 }
 
 export function ensureAgentId() {

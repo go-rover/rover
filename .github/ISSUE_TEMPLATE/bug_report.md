@@ -21,7 +21,7 @@ labels: bug
 
 ### Environment
 
-- Rover version: <!-- `vav-agent --version` -->
+- Rover version: <!-- `gorover-agent --version` -->
 - Node / Bun version: <!-- `node -v` / `bun -v` -->
 - OS:
 - `dryRun` setting:

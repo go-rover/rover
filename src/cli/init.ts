@@ -1,7 +1,7 @@
 /**
  * Interactive setup wizard.
  * Guides user through .env + rover.config.ts creation.
- * Run: bunx vav-agent init
+ * Run: bunx gorover-agent init
  */
 // @ts-nocheck
 
@@ -163,7 +163,7 @@ const ev = (key, fallback) => existingEnv[key] ?? fallback;
 // ─── Banner ────────────────────────────────────────────────────────────────────
 console.log(`
 ╔═══════════════════════════════════════════════╗
-║        vav-agent — Setup Wizard               ║
+║        gorover-agent — Setup Wizard           ║
 ║        Rover (Meteora DLMM) — Solana          ║
 ╚═══════════════════════════════════════════════╝
 
@@ -454,13 +454,13 @@ console.log(`
   NEXT STEP — Get your rover.config.ts
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1. Open https://app.vav.sh/rovers
+  1. Open https://app.gorover.xyz/rovers
   2. Create a Rover (or select existing one)
   3. Click "Download Config" — saves rover.config.ts
   4. Move rover.config.ts to this folder:
        $(pwd)/rover.config.ts
   5. Start your Rover:
-       bunx vav-agent start rover.config.ts
+       gorover-agent start rover.config.ts
 
   Your rover.config.ts includes your unique Rover ID
   and Scout key — it links this machine to your

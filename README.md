@@ -53,7 +53,7 @@ Agents are powered via **OpenRouter** and can be swapped for any compatible mode
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/vavhq/rover
+git clone https://github.com/gorover/rover
 cd rover
 bun install
 ```
@@ -61,7 +61,7 @@ bun install
 ### 2. Run the setup wizard
 
 ```bash
-bunx vav-agent init
+gorover-agent init
 ```
 
 The wizard walks you through creating `.env` (API keys, wallet, RPC, Telegram) and local config (risk preset, deploy size, thresholds, models). Takes about 2 minutes.
@@ -93,7 +93,7 @@ See [Config reference](#config-reference) below.
 ### 3. Run
 
 ```bash
-bunx vav-agent start rover.config.ts  # dry run by default (no on-chain transactions)
+gorover-agent start rover.config.ts  # dry run by default (no on-chain transactions)
 ```
 
 On startup Rover fetches your wallet balance, open Stakes, and top pool candidates, then begins autonomous cycles immediately.
@@ -117,13 +117,13 @@ In Railway → Service settings:
 - **Start Command**:
 
 ```bash
-bunx vav-agent start rover.config.ts
+gorover-agent start rover.config.ts
 ```
 
 For safe dogfood (recommended first):
 
 ```bash
-DRY_RUN=true bunx vav-agent start rover.config.ts
+DRY_RUN=true gorover-agent start rover.config.ts
 ```
 
 ### 3) Add environment variables (required)
@@ -137,14 +137,14 @@ In Railway → **Variables**, set:
 
 Recommended for server/client dogfood:
 
-- `VAV_SWARM_API_BASE`: `https://swarm.vav.sh`
-- `VAV_SCOUT_KEY`: your Scout key (`sc_...`)
+- `GOROVER_SWARM_API_BASE`: `https://swarm.gorover.xyz`
+- `GOROVER_SCOUT_KEY`: your Scout key (`sc_...`)
 
 Optional:
 
 - `HELIUS_API_KEY`: better balance reporting
 - Telegram control/notifications: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_ALLOWED_USER_IDS`
-- Relay/discovery: `VAV_DISCOVERY_API_URL`
+- Relay/discovery: `GOROVER_DISCOVERY_API_URL`
 
 ### 4) Dogfood checks (recommended)
 
@@ -154,7 +154,7 @@ Run these once before switching to live mode:
 bun run dogfood
 ```
 
-If `VAV_SCOUT_KEY` is set, this also runs a Swarm smoke test (GET `/thresholds`, POST `/beacon`).
+If `GOROVER_SCOUT_KEY` is set, this also runs a Swarm smoke test (GET `/thresholds`, POST `/beacon`).
 
 ### 5) Go live
 
@@ -213,7 +213,7 @@ REPL commands:
 
 ### Claude Code terminal (recommended)
 
-Install [Claude Code](https://claude.ai/code) and use it from inside the rover directory. Claude Code has built-in agents and slash commands that can call the `vav-agent` CLI.
+Install [Claude Code](https://claude.ai/code) and use it from inside the rover directory. Claude Code has built-in agents and slash commands that can call the `gorover-agent` CLI.
 
 ```bash
 cd rover
@@ -261,11 +261,11 @@ Run screening or management on a timer inside Claude Code:
 
 ### CLI (direct tool invocation)
 
-The `vav-agent` CLI gives you direct access to every tool with JSON output — useful for scripting, debugging, or piping into other tools.
+The `gorover-agent` CLI gives you direct access to every tool with JSON output — useful for scripting, debugging, or piping into other tools.
 
 ```bash
 bun install -g .   # install globally (once)
-vav-agent <command> [flags]
+gorover-agent <command> [flags]
 ```
 
 Or run without installing:
@@ -277,81 +277,81 @@ bun run cmd -- <command> [flags]
 **Positions & PnL**
 
 ```bash
-vav-agent positions
-vav-agent pnl <position_address>
-vav-agent wallet-positions --wallet <addr>
+gorover-agent positions
+gorover-agent pnl <position_address>
+gorover-agent wallet-positions --wallet <addr>
 ```
 
 **Screening**
 
 ```bash
-vav-agent candidates --limit 5
-vav-agent pool-detail --pool <addr> [--timeframe 5m]
-vav-agent active-bin --pool <addr>
-vav-agent search-pools --query <name_or_symbol>
-vav-agent radar --pool <addr> [--limit 4]
+gorover-agent candidates --limit 5
+gorover-agent pool-detail --pool <addr> [--timeframe 5m]
+gorover-agent active-bin --pool <addr>
+gorover-agent search-pools --query <name_or_symbol>
+gorover-agent radar --pool <addr> [--limit 4]
 ```
 
 **Token research**
 
 ```bash
-vav-agent asset-info --query <mint_or_symbol>
-vav-agent asset-holders --mint <addr> [--limit 20]
-vav-agent asset-narrative --mint <addr>
+gorover-agent asset-info --query <mint_or_symbol>
+gorover-agent asset-holders --mint <addr> [--limit 20]
+gorover-agent asset-narrative --mint <addr>
 ```
 
 **Deploy & manage**
 
 ```bash
-vav-agent deploy --pool <addr> --amount <sol> [--bins-below 69] [--bins-above 0] [--strategy bid_ask|spot|curve] [--dry-run]
-vav-agent claim --position <addr>
-vav-agent close --position <addr> [--skip-swap] [--dry-run]
-vav-agent swap --from <mint> --to <mint> --amount <n> [--dry-run]
+gorover-agent deploy --pool <addr> --amount <sol> [--bins-below 69] [--bins-above 0] [--strategy bid_ask|spot|curve] [--dry-run]
+gorover-agent claim --position <addr>
+gorover-agent close --position <addr> [--skip-swap] [--dry-run]
+gorover-agent swap --from <mint> --to <mint> --amount <n> [--dry-run]
 ```
 
 **Agent cycles**
 
 ```bash
-vav-agent screen [--dry-run] [--silent]   # one AI screening cycle
-vav-agent manage [--dry-run] [--silent]   # one AI management cycle
-vav-agent start [--dry-run]               # start autonomous agent with cron jobs
+gorover-agent screen [--dry-run] [--silent]   # one AI screening cycle
+gorover-agent manage [--dry-run] [--silent]   # one AI management cycle
+gorover-agent start [--dry-run]               # start autonomous agent with cron jobs
 ```
 
 **Config**
 
 ```bash
-vav-agent config get
-vav-agent config set <key> <value>
+gorover-agent config get
+gorover-agent config set <key> <value>
 ```
 
 **Learning & memory**
 
 ```bash
-vav-agent memory
-vav-agent memory add "your lesson text"
-vav-agent performance [--limit 200]
-vav-agent evolve
-vav-agent poollog --pool <addr>
+gorover-agent memory
+gorover-agent memory add "your lesson text"
+gorover-agent performance [--limit 200]
+gorover-agent evolve
+gorover-agent poollog --pool <addr>
 ```
 
 **Blacklist**
 
 ```bash
-vav-agent blocklist list
-vav-agent blocklist add --mint <addr> --reason "reason"
+gorover-agent blocklist list
+gorover-agent blocklist add --mint <addr> --reason "reason"
 ```
 
 **Discord signals**
 
 ```bash
-vav-agent discord-signals
-vav-agent discord-signals clear
+gorover-agent discord-signals
+gorover-agent discord-signals clear
 ```
 
 **Balance**
 
 ```bash
-vav-agent balance
+gorover-agent balance
 ```
 
 **Flags**
@@ -390,7 +390,7 @@ DISCORD_MIN_FEES_SOL=5                           # minimum pool fees to pass pre
 bun run signal
 ```
 
-Or run it in a separate terminal alongside the main agent. Signals are written to `discord-signals.json` and picked up automatically by `/screen` and `vav-agent screen`.
+Or run it in a separate terminal alongside the main agent. Signals are written to `discord-signals.json` and picked up automatically by `/screen` and `gorover-agent screen`.
 
 ### Signal pipeline
 
@@ -499,7 +499,7 @@ All fields are optional — defaults shown. Edit `user-config.json`.
 | `screeningModel` | `openai/gpt-oss-20b:free` | LLM for screening cycles |
 | `generalModel` | `openai/gpt-oss-20b:free` | LLM for REPL / chat |
 
-> Override a model at runtime: `vav-agent config set screeningModel openai/gpt-oss-20b:free`
+> Override a model at runtime: `gorover-agent config set screeningModel openai/gpt-oss-20b:free`
 
 ---
 
@@ -517,7 +517,7 @@ TELEGRAM_ALLOWED_USER_IDS=<comma-separated Telegram user ids allowed to control 
 
 ## Swarm (optional)
 
-Swarm is Rover’s shared intelligence service (`swarm.vav.sh`). Public Rover uses **Beacon-only** sync:
+Swarm is Rover’s shared intelligence service (`swarm.gorover.xyz`). Public Rover uses **Beacon-only** sync:
 - HMAC-signed Beacon payloads (`signBeacon()` in `src/core/swarm.ts`)
 - optional thresholds pull (`/thresholds`)
 

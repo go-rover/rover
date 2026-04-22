@@ -1,10 +1,10 @@
 {
-  "name": "@vav/rover",
+  "name": "@gorover/agent",
   "version": "0.4.2",
-  "description": "Autonomous Meteora DLMM liquidity provider agent for Solana — vav.sh Rover",
+  "description": "Autonomous Meteora DLMM liquidity provider agent for Solana — GoRover",
   "type": "module",
   "bin": {
-    "vav-agent": "dist/cmd.js",
+    "gorover-agent": "dist/cmd.js",
     "rover": "dist/rover.js"
   },
   "main": "dist/rover.js",
@@ -68,20 +68,19 @@
     "dlmm",
     "liquidity-provider",
     "defi",
-    "agent",
-    "vav.sh",
+    "gorover",
     "rover"
   ],
-  "homepage": "https://vav.sh",
+  "homepage": "https://gorover.xyz",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/vavhq/rover.git"
+    "url": "git+ssh://git@github.com/gorover/rover.git"
   },
   "bugs": {
-    "url": "https://github.com/vavhq/rover/issues"
+    "url": "https://github.com/gorover/rover/issues"
   },
   "license": "BUSL-1.1",
-  "author": "Aivoos <dev@vav.sh> (https://vav.sh)",
+  "author": "GoRover <dev@gorover.xyz> (https://gorover.xyz)",
   "publishConfig": {
     "access": "public"
   }

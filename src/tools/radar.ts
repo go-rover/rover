@@ -19,7 +19,7 @@ export async function studyTopLPers({ pool_address, limit = 4 }) {
     return {
       pool: pool_address,
       message:
-        "No Radar data for this pool yet. If you're using the discovery relay, set `VAV_DISCOVERY_API_URL` + `VAV_DISCOVERY_API_KEY`. Otherwise, wait for Swarm Radar to populate.",
+        "No Radar data for this pool yet. If you're using the discovery relay, set `GOROVER_DISCOVERY_API_URL` + `GOROVER_DISCOVERY_API_KEY`. Otherwise, wait for Swarm Radar to populate.",
       patterns: {},
       lpers: [],
     };

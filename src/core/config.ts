@@ -3,9 +3,9 @@ import { paths, workspacePath } from "@/lib/paths";
 
 const USER_CONFIG_PATH = paths.userConfigJson();
 const ROVER_CONFIG_JSON_PATH = workspacePath("rover.config.json");
-const DEFAULT_SWARM_URL = process.env.VAV_SWARM_URL ?? "https://swarm.vav.sh";
-const DEFAULT_DISCOVERY_API_URL = (process.env.VAV_DISCOVERY_API_URL ?? "").replace(/\/+$/, "");
-const DEFAULT_DISCOVERY_PUBLIC_KEY = process.env.VAV_DISCOVERY_API_KEY ?? "";
+const DEFAULT_SWARM_URL = process.env.GOROVER_SWARM_URL ?? "https://swarm.gorover.xyz";
+const DEFAULT_DISCOVERY_API_URL = (process.env.GOROVER_DISCOVERY_API_URL ?? "").replace(/\/+$/, "");
+const DEFAULT_DISCOVERY_PUBLIC_KEY = process.env.GOROVER_DISCOVERY_API_KEY ?? "";
 const DEFAULT_JUPITER_REFERRAL = "DM11KnLdEKENRbZyfehKN3ZM2JcjW9Suops1LFFkZH3u";
 
 const u = fs.existsSync(ROVER_CONFIG_JSON_PATH)
@@ -22,8 +22,8 @@ if (u.llmBaseUrl) process.env.LLM_BASE_URL ||= u.llmBaseUrl;
 if (u.llmApiKey) process.env.LLM_API_KEY ||= u.llmApiKey;
 if (u.dryRun !== undefined) process.env.DRY_RUN ||= String(u.dryRun);
 if (u.publicApiKey) process.env.PUBLIC_API_KEY ||= u.publicApiKey;
-if (u.discoveryApiUrl) process.env.VAV_DISCOVERY_API_URL ||= u.discoveryApiUrl;
-if (u.relayApiBaseUrl) process.env.VAV_DISCOVERY_API_URL ||= u.relayApiBaseUrl;
+if (u.discoveryApiUrl) process.env.GOROVER_DISCOVERY_API_URL ||= u.discoveryApiUrl;
+if (u.relayApiBaseUrl) process.env.GOROVER_DISCOVERY_API_URL ||= u.relayApiBaseUrl;
 
 const indicatorUserConfig = u.chartIndicators ?? {};
 
@@ -150,9 +150,9 @@ export const config: any = {
 
   // ─── Swarm (collective sync) ─────────────────────────
   swarm: {
-    url: nonEmptyString(u.swarmUrl, process.env.VAV_SWARM_API_BASE, DEFAULT_SWARM_URL),
+    url: nonEmptyString(u.vavSwarmUrl, u.swarmUrl, process.env.GOROVER_SWARM_API_BASE, DEFAULT_SWARM_URL),
     // Scout key is the auth token and the HMAC signing key.
-    scoutKey: nonEmptyString(u.scoutKey, process.env.VAV_SCOUT_KEY, ""),
+    scoutKey: nonEmptyString(u.vavScoutKey, u.scoutKey, process.env.GOROVER_SCOUT_KEY, ""),
     agentId: u.agentId ?? null,
   },
 
@@ -160,21 +160,21 @@ export const config: any = {
     url: nonEmptyString(
       u.discoveryApiUrl,
       u.relayApiBaseUrl,
-      process.env.VAV_DISCOVERY_API_URL,
+      process.env.GOROVER_DISCOVERY_API_URL,
       DEFAULT_DISCOVERY_API_URL
     ),
     publicApiKey: nonEmptyString(
       u.publicApiKey,
-      process.env.VAV_DISCOVERY_API_KEY,
+      process.env.GOROVER_DISCOVERY_API_KEY,
       DEFAULT_DISCOVERY_PUBLIC_KEY
     ),
     relayEnabled: u.relayEnabled ?? false,
   },
 
   jupiter: {
-    // Internal Jupiter Ultra settings; override by env only, do not expose in user-config.
+    // Internal Jupiter Ultra settings; override via env or vavReferralWallet in rover.config.ts.
     apiKey: process.env.JUPITER_API_KEY ?? "",
-    referralAccount: process.env.JUPITER_REFERRAL_ACCOUNT ?? DEFAULT_JUPITER_REFERRAL,
+    referralAccount: u.vavReferralWallet || process.env.JUPITER_REFERRAL_ACCOUNT || DEFAULT_JUPITER_REFERRAL,
     referralFeeBps: Number(process.env.JUPITER_REFERRAL_FEE_BPS ?? 50),
   },
 

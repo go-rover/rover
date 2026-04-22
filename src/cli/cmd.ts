@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * vav-agent — Rover CLI (Solana DLMM)
+ * gorover-agent — Rover CLI (Solana DLMM)
  * Direct tool invocation with JSON output (automation friendly).
  */
 // @ts-nocheck
@@ -14,8 +14,8 @@ import { parseArgs } from "node:util";
 // ─── DRY_RUN must be set before any tool imports ─────────────────
 if (process.argv.includes("--dry-run")) process.env.DRY_RUN = "true";
 
-// ─── Load optional env from ~/.vav-agent/ if present ─────────────
-const dataDir = path.join(os.homedir(), ".vav-agent");
+// ─── Load optional env from ~/.gorover-agent/ if present ─────────────
+const dataDir = path.join(os.homedir(), ".gorover-agent");
 const dataEnv = path.join(dataDir, ".env");
 if (fs.existsSync(dataEnv)) {
   const { config: loadDotenv } = await import("dotenv");
@@ -33,178 +33,178 @@ function die(msg, extra = {}) {
 }
 
 // ─── SKILL.md generation ──────────────────────────────────────────
-const SKILL_MD = `# vav-agent — Rover CLI (Solana DLMM)
+const SKILL_MD = `# gorover-agent — Rover CLI (Solana DLMM)
 
-Data dir: ~/.vav-agent/
+Data dir: ~/.gorover-agent/
 
 ## Commands
 
-### vav-agent balance
+### gorover-agent balance
 Returns wallet SOL and token balances.
 \`\`\`
 Output: { wallet, sol, sol_usd, usdc, tokens: [{mint, symbol, balance, usd_value}], total_usd }
 \`\`\`
 
-### vav-agent positions
+### gorover-agent positions
 Returns all open Stakes (DLMM positions).
 \`\`\`
 Output: { stakes: [{position, pool, pair, in_range, age_minutes, ...}], total_stakes }
 \`\`\`
 
-### vav-agent pnl <position_address>
+### gorover-agent pnl <position_address>
 Returns PnL for a specific Stake (position).
 \`\`\`
 Output: { pnl_pct, pnl_usd, unclaimed_fee_usd, all_time_fees_usd, current_value_usd, lower_bin, upper_bin, active_bin }
 \`\`\`
 
-### vav-agent screen [--dry-run] [--silent]
+### gorover-agent screen [--dry-run] [--silent]
 Runs one AI scan cycle to find and (optionally) enter new Stakes.
 \`\`\`
 Output: { done: true, report: "..." }
 \`\`\`
 
-### vav-agent manage [--dry-run] [--silent]
+### gorover-agent manage [--dry-run] [--silent]
 Runs one management cycle over open Stakes.
 \`\`\`
 Output: { done: true, report: "..." }
 \`\`\`
 
-### vav-agent deploy --pool <addr> --amount <sol> [--bins-below 69] [--bins-above 0] [--strategy bid_ask|spot] [--dry-run]
+### gorover-agent deploy --pool <addr> --amount <sol> [--bins-below 69] [--bins-above 0] [--strategy bid_ask|spot] [--dry-run]
 Enters a new Stake (LP position). All safety checks apply.
 \`\`\`
 Output: { success, position, pool_name, txs, price_range, bin_step }
 \`\`\`
 
-### vav-agent claim --position <addr>
+### gorover-agent claim --position <addr>
 Claims accumulated swap fees for a Stake.
 \`\`\`
 Output: { success, position, txs, base_mint }
 \`\`\`
 
-### vav-agent close --position <addr> [--skip-swap] [--dry-run]
+### gorover-agent close --position <addr> [--skip-swap] [--dry-run]
 Exits a Stake. Auto-swaps base token to SOL unless --skip-swap.
 \`\`\`
 Output: { success, pnl_pct, pnl_usd, txs, base_mint }
 \`\`\`
 
-### vav-agent swap --from <mint> --to <mint> --amount <n> [--dry-run]
+### gorover-agent swap --from <mint> --to <mint> --amount <n> [--dry-run]
 Swaps tokens via Jupiter. Use "SOL" as mint shorthand.
 \`\`\`
 Output: { success, tx, input_amount, output_amount }
 \`\`\`
 
-### vav-agent candidates [--limit 5]
+### gorover-agent candidates [--limit 5]
 Returns top pool candidates fully enriched: pool metrics, token audit, holders, smart wallets, narrative, active bin, and pool memory.
 \`\`\`
 Output: { candidates: [{name, pool, bin_step, fee_pct, volume, tvl, organic_score, active_bin, smart_wallets, token: {holders, audit, global_fees_sol, ...}, holders, narrative, pool_memory}] }
 \`\`\`
 
-### vav-agent study --pool <addr> [--limit 4]
+### gorover-agent study --pool <addr> [--limit 4]
 Studies top LPers on a pool. Returns behaviour patterns, hold times, win rates, strategies.
 \`\`\`
 Output: { pool, patterns: {top_lper_count, avg_hold_hours, avg_win_rate, ...}, lpers: [{owner, summary, positions}] }
 \`\`\`
 
-### vav-agent token-info --query <mint_or_symbol>
+### gorover-agent token-info --query <mint_or_symbol>
 Returns token audit, mcap, launchpad, price stats, fee data.
 \`\`\`
 Output: { results: [{mint, symbol, mcap, launchpad, audit, stats_1h, global_fees_sol, ...}] }
 \`\`\`
 
-### vav-agent token-holders --mint <addr> [--limit 20]
+### gorover-agent token-holders --mint <addr> [--limit 20]
 Returns holder distribution, bot %, top holder concentration.
 \`\`\`
 Output: { mint, holders, top_10_real_holders_pct, bundlers_pct_in_top_100, global_fees_sol, ... }
 \`\`\`
 
-### vav-agent token-narrative --mint <addr>
+### gorover-agent token-narrative --mint <addr>
 Returns AI-generated narrative about the token.
 \`\`\`
 Output: { mint, narrative }
 \`\`\`
 
-### vav-agent pool-detail --pool <addr> [--timeframe 5m]
+### gorover-agent pool-detail --pool <addr> [--timeframe 5m]
 Returns detailed pool metrics for a specific pool.
 \`\`\`
 Output: { pool, name, bin_step, fee_pct, volume, tvl, volatility, ... }
 \`\`\`
 
-### vav-agent search-pools --query <name_or_symbol> [--limit 10]
+### gorover-agent search-pools --query <name_or_symbol> [--limit 10]
 Searches pools by name or token symbol.
 \`\`\`
 Output: { pools: [{pool, name, bin_step, fee_pct, tvl, volume, ...}] }
 \`\`\`
 
-### vav-agent active-bin --pool <addr>
+### gorover-agent active-bin --pool <addr>
 Returns the current active bin for a pool.
 \`\`\`
 Output: { pool, binId, price }
 \`\`\`
 
-### vav-agent wallet-positions --wallet <addr>
+### gorover-agent wallet-positions --wallet <addr>
 Returns DLMM positions for any wallet address.
 \`\`\`
 Output: { wallet, positions: [...], total_positions }
 \`\`\`
 
-### vav-agent config get
+### gorover-agent config get
 Returns the full runtime config.
 
-### vav-agent config set <key> <value>
+### gorover-agent config set <key> <value>
 Updates a config key. Parses value as JSON when possible.
 \`\`\`
 Valid keys: minTvl, maxTvl, minVolume, maxPositions, deployAmountSol, managementIntervalMin, screeningIntervalMin, managementModel, screeningModel, generalModel, autoSwapAfterClaim, minClaimAmount, outOfRangeWaitMinutes
 \`\`\`
 
-### vav-agent lessons [--limit 50]
+### gorover-agent lessons [--limit 50]
 Lists all lessons from memory.json. Shows rule, tags, pinned status, outcome, role.
 \`\`\`
 Output: { total, lessons: [{id, rule, tags, outcome, pinned, role, created_at}] }
 \`\`\`
 
-### vav-agent lessons add <text>
+### gorover-agent lessons add <text>
 Adds a manual lesson with outcome=manual, role=null (applies to all roles).
 \`\`\`
 Output: { saved: true, rule, outcome, role }
 \`\`\`
 
-### vav-agent pool-memory --pool <addr>
+### gorover-agent pool-memory --pool <addr>
 Returns deploy history for a specific pool from poollog.json.
 \`\`\`
 Output: { pool_address, known, name, total_deploys, win_rate, avg_pnl_pct, last_outcome, notes, history }
 \`\`\`
 
-### vav-agent evolve
+### gorover-agent evolve
 Runs Adapt over closed Stake data and updates the local config file.
 \`\`\`
 Output: { evolved, changes, rationale }
 \`\`\`
 
-### vav-agent blacklist add --mint <addr> --reason <text>
+### gorover-agent blacklist add --mint <addr> --reason <text>
 Permanently blacklists a token mint so it is never deployed into.
 \`\`\`
 Output: { blacklisted, mint, reason }
 \`\`\`
 
-### vav-agent blacklist list
+### gorover-agent blacklist list
 Lists all blacklisted token mints with reasons and timestamps.
 \`\`\`
 Output: { count, blacklist: [{mint, symbol, reason, added_at}] }
 \`\`\`
 
-### vav-agent performance [--limit 200]
+### gorover-agent performance [--limit 200]
 Shows closed Stake performance history with summary stats.
 \`\`\`
 Output: { summary: { total_positions_closed, total_pnl_usd, avg_pnl_pct, win_rate_pct, total_lessons }, count, positions: [...] }
 \`\`\`
 
-### vav-agent discord-signals [clear]
+### gorover-agent discord-signals [clear]
 Shows pending Discord signal queue from the Rover signal listener.
 \`\`\`
 Output: { count, pending, processed, signals: [{id, symbol, pool, author, channel, queued_at, rug_score, status}] }
 \`\`\`
 
-### vav-agent start [--dry-run]
+### gorover-agent start [--dry-run]
 Starts Rover in autonomous mode with cron jobs (management + scan).
 
 ## Flags
@@ -262,14 +262,14 @@ switch (subcommand) {
   // ── init ─────────────────────────────────────────────────────────
   case "init": {
     await import("@/cli/init");
-    out({ ok: true, created: [".env"], next: "Download rover.config.ts from https://app.vav.sh/rovers" });
+    out({ ok: true, created: [".env"], next: "Download rover.config.ts from https://app.gorover.xyz/rovers" });
     break;
   }
 
   // ── status <rover.config.ts> ─────────────────────────────────────
   case "status": {
     const cfgPath = argv.filter((a) => !a.startsWith("-"))[1];
-    if (!cfgPath) die("Usage: vav-agent status <rover.config.ts>");
+    if (!cfgPath) die("Usage: gorover-agent status <rover.config.ts>");
 
     const { applyRoverConfig, loadRoverConfig } = await import("@/core/rover-config");
     const { roverConfig } = await loadRoverConfig(cfgPath);
@@ -303,7 +303,7 @@ switch (subcommand) {
       mode: process.env.DRY_RUN === "true" ? "dry_run" : "live",
       swarm: {
         enabled: isSwarmEnabled(),
-        url: process.env.VAV_SWARM_API_BASE || roverConfig.swarmUrl || null,
+        url: process.env.GOROVER_SWARM_API_BASE || roverConfig.vavSwarmUrl || roverConfig.swarmUrl || null,
         roverId,
         lastBeaconSentAt: getLastBeaconSentAt(),
       },
@@ -338,7 +338,7 @@ switch (subcommand) {
       (a, i) => !a.startsWith("-") && i > 0 && argv[i - 1] !== "--position" && a !== "pnl"
     );
     const positionAddress = flags.position || posAddr;
-    if (!positionAddress) die("Usage: vav-agent pnl <position_address>");
+    if (!positionAddress) die("Usage: gorover-agent pnl <position_address>");
 
     const { getTrackedPosition } = await import("@/core/registry");
     const { getPositionPnl, getMyPositions } = await import("@/tools/pool");
@@ -437,7 +437,7 @@ switch (subcommand) {
       flags.query ||
       flags.mint ||
       argv.find((a, i) => !a.startsWith("-") && i > 0 && a !== "token-info");
-    if (!query) die("Usage: vav-agent token-info --query <mint_or_symbol>");
+    if (!query) die("Usage: gorover-agent token-info --query <mint_or_symbol>");
     const { getTokenInfo } = await import("@/tools/asset");
     out(await getTokenInfo({ query }));
     break;
@@ -447,7 +447,7 @@ switch (subcommand) {
   case "token-holders": {
     const mint =
       flags.mint || argv.find((a, i) => !a.startsWith("-") && i > 0 && a !== "token-holders");
-    if (!mint) die("Usage: vav-agent token-holders --mint <addr>");
+    if (!mint) die("Usage: gorover-agent token-holders --mint <addr>");
     const { getTokenHolders } = await import("@/tools/asset");
     const limit = flags.limit ? parseInt(flags.limit, 10) : 20;
     out(await getTokenHolders({ mint, limit }));
@@ -458,7 +458,7 @@ switch (subcommand) {
   case "token-narrative": {
     const mint =
       flags.mint || argv.find((a, i) => !a.startsWith("-") && i > 0 && a !== "token-narrative");
-    if (!mint) die("Usage: vav-agent token-narrative --mint <addr>");
+    if (!mint) die("Usage: gorover-agent token-narrative --mint <addr>");
     const { getTokenNarrative } = await import("@/tools/asset");
     out(await getTokenNarrative({ mint }));
     break;
@@ -466,7 +466,7 @@ switch (subcommand) {
 
   // ── pool-detail ───────────────────────────────────────────────
   case "pool-detail": {
-    if (!flags.pool) die("Usage: vav-agent pool-detail --pool <addr> [--timeframe 5m]");
+    if (!flags.pool) die("Usage: gorover-agent pool-detail --pool <addr> [--timeframe 5m]");
     const { getPoolDetail } = await import("@/tools/scan");
     out(await getPoolDetail({ pool_address: flags.pool, timeframe: flags.timeframe || "5m" }));
     break;
@@ -476,7 +476,7 @@ switch (subcommand) {
   case "search-pools": {
     const query =
       flags.query || argv.find((a, i) => !a.startsWith("-") && i > 0 && a !== "search-pools");
-    if (!query) die("Usage: vav-agent search-pools --query <name_or_symbol>");
+    if (!query) die("Usage: gorover-agent search-pools --query <name_or_symbol>");
     const { searchPools } = await import("@/tools/pool");
     const limit = flags.limit ? parseInt(flags.limit, 10) : 10;
     out(await searchPools({ query, limit }));
@@ -485,7 +485,7 @@ switch (subcommand) {
 
   // ── active-bin ────────────────────────────────────────────────
   case "active-bin": {
-    if (!flags.pool) die("Usage: vav-agent active-bin --pool <addr>");
+    if (!flags.pool) die("Usage: gorover-agent active-bin --pool <addr>");
     const { getActiveBin } = await import("@/tools/pool");
     out(await getActiveBin({ pool_address: flags.pool }));
     break;
@@ -495,7 +495,7 @@ switch (subcommand) {
   case "wallet-positions": {
     const wallet =
       flags.wallet || argv.find((a, i) => !a.startsWith("-") && i > 0 && a !== "wallet-positions");
-    if (!wallet) die("Usage: vav-agent wallet-positions --wallet <addr>");
+    if (!wallet) die("Usage: gorover-agent wallet-positions --wallet <addr>");
     const { getWalletPositions } = await import("@/tools/pool");
     out(await getWalletPositions({ wallet_address: wallet }));
     break;
@@ -503,7 +503,7 @@ switch (subcommand) {
 
   // ── deploy ───────────────────────────────────────────────────────
   case "deploy": {
-    if (!flags.pool) die("Usage: vav-agent deploy --pool <addr> --amount <sol>");
+    if (!flags.pool) die("Usage: gorover-agent deploy --pool <addr> --amount <sol>");
     const amountX = flags["amount-x"] ? parseFloat(flags["amount-x"]) : undefined;
     if (!flags.amount && !amountX) die("--amount or --amount-x is required");
 
@@ -525,7 +525,7 @@ switch (subcommand) {
 
   // ── claim ────────────────────────────────────────────────────────
   case "claim": {
-    if (!flags.position) die("Usage: vav-agent claim --position <addr>");
+    if (!flags.position) die("Usage: gorover-agent claim --position <addr>");
     const { executeTool } = await import("@/tools/deploy");
     out(await executeTool("claim_fees", { position_address: flags.position }));
     break;
@@ -533,7 +533,7 @@ switch (subcommand) {
 
   // ── close ────────────────────────────────────────────────────────
   case "close": {
-    if (!flags.position) die("Usage: vav-agent close --position <addr>");
+    if (!flags.position) die("Usage: gorover-agent close --position <addr>");
     const { executeTool } = await import("@/tools/deploy");
     out(
       await executeTool("close_position", {
@@ -547,7 +547,7 @@ switch (subcommand) {
   // ── swap ─────────────────────────────────────────────────────────
   case "swap": {
     if (!flags.from || !flags.to || !flags.amount)
-      die("Usage: vav-agent swap --from <mint> --to <mint> --amount <n>");
+      die("Usage: gorover-agent swap --from <mint> --to <mint> --amount <n>");
     const { executeTool } = await import("@/tools/deploy");
     out(
       await executeTool("swap_token", {
@@ -583,7 +583,7 @@ switch (subcommand) {
     } else if (sub2 === "set") {
       const key = argv.filter((a) => !a.startsWith("-"))[2];
       const rawVal = argv.filter((a) => !a.startsWith("-"))[3];
-      if (!key || rawVal === undefined) die("Usage: vav-agent config set <key> <value>");
+      if (!key || rawVal === undefined) die("Usage: gorover-agent config set <key> <value>");
       let value = rawVal;
       try {
         value = JSON.parse(rawVal);
@@ -602,7 +602,7 @@ switch (subcommand) {
 
   // ── study ────────────────────────────────────────────────────────
   case "study": {
-    if (!flags.pool) die("Usage: vav-agent study --pool <addr> [--limit 4]");
+    if (!flags.pool) die("Usage: gorover-agent study --pool <addr> [--limit 4]");
     const { studyTopLPers } = await import("@/tools/radar");
     const limit = flags.limit ? parseInt(flags.limit, 10) : 4;
     out(await studyTopLPers({ pool_address: flags.pool, limit }));
@@ -612,14 +612,14 @@ switch (subcommand) {
   // ── start ────────────────────────────────────────────────────────
   case "start": {
     const cfgPath = argv.filter((a) => !a.startsWith("-"))[1];
-    if (!cfgPath) die("Usage: vav-agent start <rover.config.ts>");
+    if (!cfgPath) die("Usage: gorover-agent start <rover.config.ts>");
 
     const { applyRoverConfig, loadRoverConfig } = await import("@/core/rover-config");
     const { roverConfig } = await loadRoverConfig(cfgPath);
     applyRoverConfig({ roverConfig });
 
     const { startCronJobs } = await import("@/runtime/rover");
-    process.stderr.write("[vav-agent] Starting Rover runtime...\n");
+    process.stderr.write("[gorover-agent] Starting Rover runtime...\n");
     startCronJobs();
     break;
   }
@@ -631,7 +631,7 @@ switch (subcommand) {
         .filter((a) => !a.startsWith("-"))
         .slice(2)
         .join(" ");
-      if (!text) die("Usage: vav-agent lessons add <text>");
+      if (!text) die("Usage: gorover-agent lessons add <text>");
       const { addLesson } = await import("@/core/memory");
       addLesson(text, [], { pinned: false, role: null });
       out({ saved: true, rule: text, outcome: "manual", role: null });
@@ -645,7 +645,7 @@ switch (subcommand) {
 
   // ── pool-memory ──────────────────────────────────────────────────
   case "pool-memory": {
-    if (!flags.pool) die("Usage: vav-agent pool-memory --pool <addr>");
+    if (!flags.pool) die("Usage: gorover-agent pool-memory --pool <addr>");
     const { getPoolMemory } = await import("@/core/poollog");
     out(getPoolMemory({ pool_address: flags.pool }));
     break;
@@ -681,7 +681,7 @@ switch (subcommand) {
   // ── blacklist ────────────────────────────────────────────────────
   case "blacklist": {
     if (sub2 === "add") {
-      if (!flags.mint) die("Usage: vav-agent blacklist add --mint <addr> --reason <text>");
+      if (!flags.mint) die("Usage: gorover-agent blacklist add --mint <addr> --reason <text>");
       if (!flags.reason) die("--reason is required");
       const { addToBlacklist } = await import("@/core/blocklist");
       out(addToBlacklist({ mint: flags.mint, reason: flags.reason }));
@@ -756,7 +756,7 @@ switch (subcommand) {
   // ── withdraw-liquidity ─────────────────────────────────────────
   case "withdraw-liquidity": {
     if (!flags.position)
-      die("Usage: vav-agent withdraw-liquidity --position <addr> --pool <addr> [--bps 10000]");
+      die("Usage: gorover-agent withdraw-liquidity --position <addr> --pool <addr> [--bps 10000]");
     if (!flags.pool) die("--pool is required");
     const { withdrawLiquidity } = await import("@/tools/pool");
     out(
@@ -774,7 +774,7 @@ switch (subcommand) {
   case "add-liquidity": {
     if (!flags.position)
       die(
-        "Usage: vav-agent add-liquidity --position <addr> --pool <addr> [--amount-x <n>] [--amount-y <n>]"
+        "Usage: gorover-agent add-liquidity --position <addr> --pool <addr> [--amount-x <n>] [--amount-y <n>]"
       );
     if (!flags.pool) die("--pool is required");
     const { addLiquidity } = await import("@/tools/pool");
@@ -792,5 +792,5 @@ switch (subcommand) {
   }
 
   default:
-    die(`Unknown command: ${subcommand}. Run 'vav-agent help' for usage.`);
+    die(`Unknown command: ${subcommand}. Run 'gorover-agent help' for usage.`);
 }

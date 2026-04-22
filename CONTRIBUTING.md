@@ -1,7 +1,7 @@
 # Contributing to Rover
 
 Thanks for your interest in contributing. Rover is part of the
-[vav.sh](https://vav.sh) ecosystem and follows strict conventions to stay
+[GoRover](https://gorover.xyz) ecosystem and follows strict conventions to stay
 maintainable.
 
 ## Before You Start
@@ -10,14 +10,14 @@ maintainable.
    mode at least once.
 2. Read [`docs/architecture.md`](./docs/architecture.md) to understand the
    Cycle loop and the role of each module.
-3. Check [open issues](https://github.com/vavhq/rover/issues) and the
-   [vav.sh ROADMAP](https://github.com/vavhq/vav/blob/main/ROADMAP.md) —
+3. Check [open issues](https://github.com/gorover/rover/issues) and the
+   [GoRover ROADMAP](https://gorover.xyz/docs) —
    large features should be discussed first.
 
 ## Development Setup
 
 ```bash
-git clone git@github.com:vavhq/rover.git
+git clone git@github.com:gorover/rover.git
 cd rover
 bun install
 cp .env.example .env                # fill in values
@@ -40,7 +40,7 @@ rover/
 │   ├── rover.ts         Main entry — REPL + cron orchestration
 │   ├── engine.ts        ReAct Cycle loop (LLM → tool → repeat)
 │   ├── cortex.ts        System prompt builder per role (Seeker/Keeper/General)
-│   ├── swarm.ts         vav.sh Swarm client (Beacon / Radar / thresholds)
+│   ├── swarm.ts         GoRover Swarm client (Beacon / Radar / thresholds)
 │   ├── memory.ts        Learning engine (Log derivation + Adapt evolution)
 │   ├── registry.ts      Stake registry + crash recovery
 │   ├── playbook.ts      Saved strategies
@@ -91,7 +91,7 @@ CI (see `.github/workflows/ci.yml`) runs all four on every PR.
 
 ## Naming Discipline
 
-Rover uses the vav.sh platform vocabulary. **Never** reintroduce legacy branding names from earlier forks.
+Rover uses the GoRover platform vocabulary. **Never** reintroduce legacy branding names from earlier forks.
 
 Keep the public vocabulary consistent across:
 - CLI commands

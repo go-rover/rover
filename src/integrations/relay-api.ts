@@ -66,7 +66,7 @@ async function relayApiJsonOnce(
   const base = getRelayApiBase();
   if (!base) {
     throw new Error(
-      "RELAY_API_NOT_CONFIGURED: set VAV_DISCOVERY_API_URL or discoveryApiUrl in config"
+      "RELAY_API_NOT_CONFIGURED: set GOROVER_DISCOVERY_API_URL or discoveryApiUrl in config"
     );
   }
   const res = await fetchWithTimeout(`${base}${pathname}`, options, timeoutMs);

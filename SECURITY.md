@@ -17,7 +17,7 @@ Only the **latest minor release** receives security patches.
 **Do not open a public GitHub issue.** Report privately by emailing:
 
 ```
-security@vav.sh
+security@gorover.xyz
 ```
 
 Include:
@@ -36,14 +36,14 @@ within **7 days** for high-severity issues.
 In scope:
 
 - Agent code in `src/` (wallet handling, signing, state persistence)
-- CLI (`vav-agent`) and CI build artifacts
+- CLI (`gorover-agent`) and CI build artifacts
 - Swarm Beacon payload signing / HMAC verification
 - Anything that could cause loss of funds or leak private material
 
 Out of scope:
 
 - Third-party dependencies (report upstream)
-- Issues in `api.vav.sh` / `swarm.vav.sh` — those belong to the platform repo
+- Issues in `swarm.gorover.xyz` — those belong to the gorover-app platform repo
 - Social engineering of individual users
 - Rate limiting / DoS against public endpoints
 

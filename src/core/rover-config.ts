@@ -6,9 +6,16 @@ import { paths, workspacePath } from "@/lib/paths";
 export type RoverPreset = "conservative" | "moderate" | "aggressive" | "safe" | "degen";
 
 export type RoverConfigFile = {
+  // GoRover dashboard fields (auto-generated — do not edit)
+  vavScoutKey?: string;
+  vavSwarmUrl?: string;
+  vavReferralWallet?: string;
   roverId?: string;
+
+  // Legacy field names (backward compat)
   swarmUrl?: string;
   scoutKey?: string;
+
   dryRun?: boolean;
   preset?: RoverPreset;
 
@@ -16,8 +23,18 @@ export type RoverConfigFile = {
   rpcUrl?: string;
   walletKey?: string;
   llmApiKey?: string;
+  llmKey?: string;
   llmBaseUrl?: string;
   llmModel?: string;
+
+  // Safety fields
+  minBalanceSol?: number;
+  minPositionSol?: number;
+  slippageBps?: number;
+  maxPositions?: number;
+  seekerIntervalMs?: number;
+  keeperIntervalMs?: number;
+  telegramChatId?: string;
 };
 
 export type RoverConfigLoadResult = {
@@ -68,9 +85,14 @@ export function applyRoverConfig({ roverConfig }: { roverConfig: RoverConfigFile
     process.env.DRY_RUN ||= "true";
   }
 
-  if (roverConfig.roverId) process.env.VAV_ROVER_ID ||= String(roverConfig.roverId);
-  if (roverConfig.scoutKey) process.env.VAV_SCOUT_KEY ||= String(roverConfig.scoutKey);
-  if (roverConfig.swarmUrl) process.env.VAV_SWARM_API_BASE ||= String(roverConfig.swarmUrl);
+  if (roverConfig.llmKey) process.env.LLM_API_KEY ||= String(roverConfig.llmKey);
+  if (roverConfig.telegramChatId) process.env.TELEGRAM_CHAT_ID ||= String(roverConfig.telegramChatId);
+
+  if (roverConfig.roverId) process.env.GOROVER_ROVER_ID ||= String(roverConfig.roverId);
+  const scoutKey = roverConfig.vavScoutKey ?? roverConfig.scoutKey;
+  if (scoutKey) process.env.GOROVER_SCOUT_KEY ||= String(scoutKey);
+  const swarmUrl = roverConfig.vavSwarmUrl ?? roverConfig.swarmUrl;
+  if (swarmUrl) process.env.GOROVER_SWARM_API_BASE ||= String(swarmUrl);
 
   // Persist a snapshot for synchronous config loading.
   const jsonPath = workspacePath("rover.config.json");

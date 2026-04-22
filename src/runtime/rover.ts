@@ -1833,7 +1833,7 @@ async function telegramHandler(msg) {
       const agentId = ensureAgentId();
       if (!enabled) {
         await sendMessage(
-          `Swarm: disabled\nAgent ID: ${agentId}\nSet VAV_SCOUT_KEY + VAV_SWARM_API_BASE to connect.`
+          `Swarm: disabled\nAgent ID: ${agentId}\nSet GOROVER_SCOUT_KEY + GOROVER_SWARM_API_BASE to connect.`
         ).catch(() => {});
         return;
       }

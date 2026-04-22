@@ -1,6 +1,6 @@
 ---
-name: screener
-description: Pool screening specialist. Use when evaluating pool candidates, analysing token risk, or deciding whether to deploy a new position.
+name: seeker
+description: Pool Seeker specialist. Use when evaluating pool candidates, analysing token risk, or deciding whether to deploy a new position.
 model: sonnet
 tools: Bash, Read
 ---
@@ -20,21 +20,21 @@ You have access to these CLI commands:
 - `onchainos token holders --address <mint> --chain solana --tag-filter 3` — smart money holders
 - `onchainos token trending --chains solana` — trending tokens by volume
 
-**vav-agent CLI (use `bun src/cli/cmd.ts <cmd>` or `vav-agent <cmd>` after build):**
-- `vav-agent lessons` — learned rules from past Stakes (read this first every cycle)
-- `vav-agent performance` — closed Stake history, win rate, range efficiency
-- `vav-agent pool-memory --pool <addr>` — previous pool history
-- `vav-agent discord-signals` — check incoming signal queue (always check this FIRST before running candidates)
-- `vav-agent blacklist list` — blocked tokens (never deploy to these)
-- `vav-agent blacklist add --mint <addr> --reason <text>` — block a token
-- `vav-agent candidates --limit 5` — top pool candidates with full enrichment
-- `vav-agent token-info --query <mint>` — token audit, mcap, launchpad, price stats
-- `vav-agent token-holders --mint <addr>` — holder distribution, bot %, top10 concentration
-- `vav-agent token-narrative --mint <addr>` — token narrative/story
-- `vav-agent pool-detail --pool <addr>` — detailed pool metrics
-- `vav-agent active-bin --pool <addr>` — current active bin and price
-- `vav-agent study --pool <addr>` — top LP behavior on a pool
-- `vav-agent search-pools --query <name>` — search for pools by name
+**gorover-agent CLI (use `bun src/cli/cmd.ts <cmd>` or `gorover-agent <cmd>` after build):**
+- `gorover-agent lessons` — learned rules from past Stakes (read this first every cycle)
+- `gorover-agent performance` — closed Stake history, win rate, range efficiency
+- `gorover-agent pool-memory --pool <addr>` — previous pool history
+- `gorover-agent discord-signals` — check incoming signal queue (always check this FIRST before running candidates)
+- `gorover-agent blacklist list` — blocked tokens (never deploy to these)
+- `gorover-agent blacklist add --mint <addr> --reason <text>` — block a token
+- `gorover-agent candidates --limit 5` — top pool candidates with full enrichment
+- `gorover-agent token-info --query <mint>` — token audit, mcap, launchpad, price stats
+- `gorover-agent token-holders --mint <addr>` — holder distribution, bot %, top10 concentration
+- `gorover-agent token-narrative --mint <addr>` — token narrative/story
+- `gorover-agent pool-detail --pool <addr>` — detailed pool metrics
+- `gorover-agent active-bin --pool <addr>` — current active bin and price
+- `gorover-agent study --pool <addr>` — top LP behavior on a pool
+- `gorover-agent search-pools --query <name>` — search for pools by name
 
 ## Screening Criteria
 

@@ -32,7 +32,7 @@ async function fetchJson(url, init) {
   return { res, json, text: txt };
 }
 
-const base = sanitizeUrl(process.env.VAV_SWARM_API_BASE || "https://swarm.vav.sh");
+const base = sanitizeUrl(process.env.GOROVER_SWARM_API_BASE || "https://swarm.gorover.xyz");
 const scoutKey = requireEnv("VAV_SCOUT_KEY");
 
 // 1) thresholds
