@@ -178,13 +178,15 @@ function pushEvent(state, event) {
 
 /**
  * Mark a position as closed.
+ * closeTxs: on-chain tx hashes from the exit (used for Swarm Beacon + on-chain verify).
  */
-export function recordClose(position_address, reason) {
+export function recordClose(position_address, reason, { closeTxs = [] } = {}) {
   const state = load();
   const pos = state.positions[position_address];
   if (!pos) return;
   pos.closed = true;
   pos.closed_at = new Date().toISOString();
+  pos.close_txs = Array.isArray(closeTxs) ? closeTxs : [];
   pos.notes.push(`Closed at ${pos.closed_at}: ${reason}`);
   pushEvent(state, {
     action: "close",
@@ -563,4 +565,17 @@ export function syncOpenPositions(active_addresses) {
   }
 
   if (changed) save(state);
+}
+
+/**
+ * Get closed positions from the last N days.
+ * Used by Swarm Beacon to report verified closed Stakes.
+ * Rich payload intentionally — more data = better Swarm AI analysis over time.
+ */
+export function getClosedPositions(limitDays = 7) {
+  const state = load();
+  const cutoff = Date.now() - limitDays * 24 * 60 * 60 * 1000;
+  return Object.values(state.positions).filter(
+    (p: any) => p.closed && p.closed_at && new Date(p.closed_at).getTime() > cutoff
+  );
 }

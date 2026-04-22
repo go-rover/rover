@@ -22,6 +22,7 @@ import {
   setLastBriefingDate,
   setPositionInstruction,
   updatePnlAndCheckExits,
+  getClosedPositions,
 } from "@/core/registry";
 import { stageSignals } from "@/core/signal-tracker";
 import { getWeightsSummary } from "@/core/signal-weights";
@@ -67,18 +68,26 @@ function getRoverVersion(): string {
   }
 }
 
-async function buildBeaconStakesSnapshot() {
+function buildBeaconStakesSnapshot() {
   try {
-    const res = await getMyPositions({ force: true, silent: true }).catch(() => null);
-    const positions = res?.positions || [];
-    if (!Array.isArray(positions) || positions.length === 0) return [];
-    return positions.map((p) => ({
+    // Send closed Stakes from last 7 days — rich payload for Swarm AI analysis.
+    // More data = better collective intelligence over time.
+    const closed = getClosedPositions(7);
+    return closed.slice(-20).map((p: any) => ({
       pool: p.pool,
-      position: p.position,
-      pnl_pct: typeof p.pnl_pct === "number" ? p.pnl_pct : undefined,
-      age_minutes: typeof p.age_minutes === "number" ? p.age_minutes : undefined,
-      in_range: typeof p.in_range === "boolean" ? p.in_range : undefined,
-      realized: false,
+      txHash: p.close_txs?.[0] || "",
+      pnl: typeof p.peak_pnl_pct === "number" ? p.peak_pnl_pct : 0,
+      timestamp: p.closed_at ? new Date(p.closed_at).getTime() : Date.now(),
+      protocol: "meteora" as const,
+      // Future-proof fields for AI analysis
+      minutesHeld: p.deployed_at && p.closed_at
+        ? Math.floor((new Date(p.closed_at).getTime() - new Date(p.deployed_at).getTime()) / 60000)
+        : undefined,
+      strategy: p.strategy || undefined,
+      exitReason: p.notes?.[p.notes.length - 1] || undefined,
+      outOfRangeMinutes: p.out_of_range_since && p.closed_at
+        ? Math.floor((new Date(p.closed_at).getTime() - new Date(p.out_of_range_since).getTime()) / 60000)
+        : undefined,
     }));
   } catch {
     return [];
@@ -93,11 +102,15 @@ async function buildBeaconStakesSnapshot() {
     const allow = shouldSendBeacon();
     if (!allow.ok) return;
     const { sendBeacon } = await import("@/core/swarm");
-    const stakes = await buildBeaconStakesSnapshot();
+    const stakes = buildBeaconStakesSnapshot();
     const res = await sendBeacon({
-      logs: [{ at: new Date().toISOString(), level: "info", msg: "startup_heartbeat" }],
+      logs: [`startup_heartbeat at ${new Date().toISOString()}`],
       stakes,
-      thresholds: { screening: config.screening },
+      thresholds: {
+        minApr: config.screening?.minTokenFeesSol,
+        maxDrawdown: config.management?.stopLossPct,
+        preset: config.management?.preset || "moderate",
+      },
       roverVersion: getRoverVersion(),
     });
     if (res?.ok) {
@@ -901,11 +914,19 @@ Summarize the current portfolio health, total fees earned, and performance of al
         const allow = shouldSendBeacon();
         if (allow.ok) {
           const { sendBeacon } = await import("@/core/swarm");
-          const stakes = await buildBeaconStakesSnapshot();
+          const { listLessons } = await import("@/core/memory");
+          const stakes = buildBeaconStakesSnapshot();
+          const recentLogs = listLessons({ limit: 10 }).lessons.map(
+            (l: any) => `[${l.outcome.toUpperCase()}] ${l.rule}`
+          );
           const res = await sendBeacon({
-            logs: [{ at: new Date().toISOString(), level: "info", msg: "health_heartbeat" }],
+            logs: recentLogs.length > 0 ? recentLogs : [`health_heartbeat at ${new Date().toISOString()}`],
             stakes,
-            thresholds: { screening: config.screening },
+            thresholds: {
+              minApr: config.screening?.minTokenFeesSol,
+              maxDrawdown: config.management?.stopLossPct,
+              preset: config.management?.preset || "moderate",
+            },
             roverVersion: getRoverVersion(),
           }).catch((err) =>
             log("swarm_warn", `Beacon send failed: ${err?.message || String(err)}`)

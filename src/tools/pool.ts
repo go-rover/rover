@@ -1463,7 +1463,7 @@ export async function closePosition({ position_address, reason }) {
         };
       }
 
-      recordClose(position_address, reason || "agent decision");
+      recordClose(position_address, reason || "agent decision", { closeTxs: closeTxHashes });
 
       if (tracked) {
         const deployedAt = new Date(tracked.deployed_at).getTime();
@@ -1701,7 +1701,7 @@ export async function closePosition({ position_address, reason }) {
       };
     }
 
-    recordClose(position_address, reason || "agent decision");
+    recordClose(position_address, reason || "agent decision", { closeTxs: closeTxHashes });
 
     // Record performance for learning
     if (tracked) {
