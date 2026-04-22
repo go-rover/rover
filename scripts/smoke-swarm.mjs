@@ -33,7 +33,7 @@ async function fetchJson(url, init) {
 }
 
 const base = sanitizeUrl(process.env.GOROVER_SWARM_API_BASE || "https://swarm.gorover.xyz");
-const scoutKey = requireEnv("VAV_SCOUT_KEY");
+const scoutKey = requireEnv("GOROVER_SCOUT_KEY");
 
 // 1) thresholds
 {
@@ -61,7 +61,7 @@ const scoutKey = requireEnv("VAV_SCOUT_KEY");
     headers: {
       accept: "application/json",
       "content-type": "application/json",
-      "x-vav-scout-key": scoutKey,
+      "x-gorover-scout-key": scoutKey,
     },
     body: JSON.stringify(body),
   });

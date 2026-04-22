@@ -1,13 +1,13 @@
 export type RoverPreset = "conservative" | "moderate" | "aggressive";
 
+/** Jupiter referral fee wallet is set only by the platform (admin / GOROVER_REFERRAL_WALLET on the host). */
+
 export type RoverConfig = {
   // ─── GoRover (auto-generated — do not edit) ──────────────────────
   /** Scout key from app.gorover.xyz dashboard (starts with `sc_`). */
-  vavScoutKey: string;
+  goroverScoutKey: string;
   /** Swarm base URL. Production: https://swarm.gorover.xyz */
-  vavSwarmUrl: string;
-  /** GoRover Jupiter referral wallet. Auto-filled from dashboard. */
-  vavReferralWallet: string;
+  goroverSwarmUrl: string;
 
   // ─── Your wallet ⚠️ sensitive ────────────────────────────────────
   /** Base58 private key of your dedicated trading wallet. */
@@ -52,32 +52,31 @@ export type RoverConfig = {
 
 export const roverConfig: RoverConfig = {
   // ─── GoRover (auto-generated — do not edit) ──────────────────────
-  vavScoutKey:       "sc_xxx",
-  vavSwarmUrl:       "https://swarm.gorover.xyz",
-  vavReferralWallet: "GOROVER_SOL_WALLET",
+  goroverScoutKey: "sc_xxx",
+  goroverSwarmUrl: "https://swarm.gorover.xyz",
 
   // ─── Your wallet ⚠️ sensitive ────────────────────────────────────
-  walletKey:         "YOUR_PRIVATE_KEY_BASE58",
+  walletKey: "YOUR_PRIVATE_KEY_BASE58",
 
   // ─── RPC ─────────────────────────────────────────────────────────
-  rpcUrl:            "https://mainnet.helius-rpc.com/?api-key=YOUR_KEY",
+  rpcUrl: "https://mainnet.helius-rpc.com/?api-key=YOUR_KEY",
 
   // ─── LLM ─────────────────────────────────────────────────────────
-  llmKey:            "sk-or-YOUR_KEY",
-  llmModel:          "google/gemini-flash-1.5",
+  llmKey: "sk-or-YOUR_KEY",
+  llmModel: "google/gemini-flash-1.5",
 
   // ─── Behavior ────────────────────────────────────────────────────
-  preset:            "moderate",
-  dryRun:            true,
+  preset: "moderate",
+  dryRun: true,
 
   // ─── Safety ──────────────────────────────────────────────────────
-  minBalanceSol:     0.1,
-  minPositionSol:    0.05,
-  slippageBps:       100,
+  minBalanceSol: 0.1,
+  minPositionSol: 0.05,
+  slippageBps: 100,
 
   // ─── Optional ────────────────────────────────────────────────────
-  telegramChatId:    "",
-  maxPositions:      3,
-  seekerIntervalMs:  1800000,
-  keeperIntervalMs:  600000,
+  telegramChatId: "",
+  maxPositions: 3,
+  seekerIntervalMs: 1800000,
+  keeperIntervalMs: 600000,
 };

@@ -7,12 +7,10 @@ export type RoverPreset = "conservative" | "moderate" | "aggressive" | "safe" | 
 
 export type RoverConfigFile = {
   // GoRover dashboard fields (auto-generated — do not edit)
-  vavScoutKey?: string;
-  vavSwarmUrl?: string;
-  // vavReferralWallet: removed — referral wallet is platform-controlled only
+  goroverScoutKey?: string;
+  goroverSwarmUrl?: string;
   roverId?: string;
 
-  // Legacy field names (backward compat)
   swarmUrl?: string;
   scoutKey?: string;
 
@@ -86,12 +84,13 @@ export function applyRoverConfig({ roverConfig }: { roverConfig: RoverConfigFile
   }
 
   if (roverConfig.llmKey) process.env.LLM_API_KEY ||= String(roverConfig.llmKey);
-  if (roverConfig.telegramChatId) process.env.TELEGRAM_CHAT_ID ||= String(roverConfig.telegramChatId);
+  if (roverConfig.telegramChatId)
+    process.env.TELEGRAM_CHAT_ID ||= String(roverConfig.telegramChatId);
 
   if (roverConfig.roverId) process.env.GOROVER_ROVER_ID ||= String(roverConfig.roverId);
-  const scoutKey = roverConfig.vavScoutKey ?? roverConfig.scoutKey;
+  const scoutKey = roverConfig.goroverScoutKey ?? roverConfig.scoutKey;
   if (scoutKey) process.env.GOROVER_SCOUT_KEY ||= String(scoutKey);
-  const swarmUrl = roverConfig.vavSwarmUrl ?? roverConfig.swarmUrl;
+  const swarmUrl = roverConfig.goroverSwarmUrl ?? roverConfig.swarmUrl;
   if (swarmUrl) process.env.GOROVER_SWARM_API_BASE ||= String(swarmUrl);
 
   // Persist a snapshot for synchronous config loading.

@@ -21,7 +21,11 @@ export function log(category, message) {
     .replace(/\bscreening\b/gi, "scan")
     .replace(/\bagent\b/gi, "rover");
 
-  const level = rawCategory.includes("error") ? "error" : rawCategory.includes("warn") ? "warn" : "info";
+  const level = rawCategory.includes("error")
+    ? "error"
+    : rawCategory.includes("warn")
+      ? "warn"
+      : "info";
 
   if (LEVELS[level] < currentLevel) return;
 

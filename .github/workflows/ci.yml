@@ -30,8 +30,8 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
-      - name: Test
-        run: bun run test
+      - name: Test (unit; integration needs live API keys)
+        run: bun run test:unit
 
       - name: Build
         run: bun run build

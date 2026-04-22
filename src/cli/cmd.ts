@@ -262,7 +262,11 @@ switch (subcommand) {
   // ── init ─────────────────────────────────────────────────────────
   case "init": {
     await import("@/cli/init");
-    out({ ok: true, created: [".env"], next: "Download rover.config.ts from https://app.gorover.xyz/rovers" });
+    out({
+      ok: true,
+      created: [".env"],
+      next: "Download rover.config.ts from https://app.gorover.xyz/rovers",
+    });
     break;
   }
 
@@ -289,13 +293,12 @@ switch (subcommand) {
       })),
     ]);
 
-    const stakes =
-      positions?.error
-        ? positions
-        : {
-            total_stakes: positions?.total_positions ?? positions?.positions?.length ?? 0,
-            stakes: positions?.positions ?? [],
-          };
+    const stakes = positions?.error
+      ? positions
+      : {
+          total_stakes: positions?.total_positions ?? positions?.positions?.length ?? 0,
+          stakes: positions?.positions ?? [],
+        };
 
     out({
       ok: true,
@@ -303,7 +306,11 @@ switch (subcommand) {
       mode: process.env.DRY_RUN === "true" ? "dry_run" : "live",
       swarm: {
         enabled: isSwarmEnabled(),
-        url: process.env.GOROVER_SWARM_API_BASE || roverConfig.vavSwarmUrl || roverConfig.swarmUrl || null,
+        url:
+          process.env.GOROVER_SWARM_API_BASE ||
+          roverConfig.goroverSwarmUrl ||
+          roverConfig.swarmUrl ||
+          null,
         roverId,
         lastBeaconSentAt: getLastBeaconSentAt(),
       },
@@ -640,9 +647,13 @@ switch (subcommand) {
         const registry = JSON.parse(fs.readFileSync(REGISTRY_FILE, "utf8"));
         const open = Object.values(registry.positions || {}).filter((p: any) => !p.closed);
         if (open.length > 0) {
-          process.stderr.write(`[gorover-agent] ⚠ Crash recovery: ${open.length} open Stake(s) found. Keeper will check immediately.\n`);
+          process.stderr.write(
+            `[gorover-agent] ⚠ Crash recovery: ${open.length} open Stake(s) found. Keeper will check immediately.\n`
+          );
         }
-      } catch { /* registry.json unreadable — will be handled at runtime */ }
+      } catch {
+        /* registry.json unreadable — will be handled at runtime */
+      }
     }
 
     // ── Version check ──────────────────────────────────────────────
@@ -655,17 +666,65 @@ switch (subcommand) {
       if (res.ok) {
         const latest = ((await res.json()) as any).version;
         if (latest && latest !== current) {
-          process.stderr.write(`[gorover-agent] ⚠ New version available: ${latest} (you have ${current}). Run: bun update @gorover/agent\n`);
+          process.stderr.write(
+            `[gorover-agent] ⚠ New version available: ${latest} (you have ${current}). Run: bun update @gorover/agent\n`
+          );
         }
       }
-    } catch { /* non-blocking — skip if offline or npm down */ }
+    } catch {
+      /* non-blocking — skip if offline or npm down */
+    }
 
     const { applyRoverConfig, loadRoverConfig } = await import("@/core/rover-config");
     const { roverConfig } = await loadRoverConfig(cfgPath);
     applyRoverConfig({ roverConfig });
 
+    // ── Wallet = GoRover account (self-hosted) — match Scout.walletAddress on Swarm ─
+    const scoutKey = String(process.env.GOROVER_SCOUT_KEY || "").trim();
+    const pk = String(process.env.WALLET_PRIVATE_KEY || "").trim();
+    const swarmBase = String(
+      process.env.GOROVER_SWARM_API_BASE ||
+        (roverConfig as { goroverSwarmUrl?: string }).goroverSwarmUrl ||
+        (roverConfig as { swarmUrl?: string }).swarmUrl ||
+        ""
+    ).trim();
+
+    if (!scoutKey) {
+      die(
+        "Set goroverScoutKey in rover.config (or GOROVER_SCOUT_KEY) so the agent can verify your account."
+      );
+    }
+    if (pk) {
+      try {
+        const { assertWalletMatchesScoutOnSwarm } = await import("@/lib/verify-platform-wallet");
+        await assertWalletMatchesScoutOnSwarm({
+          swarmBaseUrl: swarmBase,
+          scoutKey,
+          privateKeyBase58: pk,
+        });
+      } catch (e: any) {
+        die(e?.message || "Wallet / Swarm identity check failed.");
+      }
+    } else {
+      if (
+        process.env.GOROVER_SKIP_SCOUT_WALLET_CHECK === "1" ||
+        process.env.GOROVER_SKIP_SCOUT_WALLET_CHECK === "true"
+      ) {
+        process.stderr.write(
+          "[gorover-agent] No WALLET_PRIVATE_KEY — continuing only because GOROVER_SKIP_SCOUT_WALLET_CHECK is set.\n"
+        );
+      } else {
+        die(
+          "WALLET_PRIVATE_KEY (or walletKey in rover.config) is required. It must be the keypair for the same address as your GoRover account. To skip only for local debugging: GOROVER_SKIP_SCOUT_WALLET_CHECK=1"
+        );
+      }
+    }
+
     // Write lock file
-    fs.writeFileSync(LOCK_FILE, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+    fs.writeFileSync(
+      LOCK_FILE,
+      JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })
+    );
     process.on("exit", () => fs.rmSync(LOCK_FILE, { force: true }));
     process.on("SIGINT", () => process.exit(0));
     process.on("SIGTERM", () => process.exit(0));

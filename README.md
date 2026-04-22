@@ -114,17 +114,19 @@ This is the simplest way to run Rover as a single always-on instance.
 
 In Railway → Service settings:
 
-- **Start Command**:
+- **Start Command** (deploy from Git / Railpack — uses Bun + sumber, **tanpa** binary npm global):
+
+```bash
+bun run start:agent
+```
+
+It runs `bun src/cli/cmd.ts start rover.config.example.ts`; set real secrets in Railway **Variables** (they override the example file). Equivalent locally after `bun run build` / `npm i -g`:
 
 ```bash
 gorover-agent start rover.config.ts
 ```
 
-For safe dogfood (recommended first):
-
-```bash
-DRY_RUN=true gorover-agent start rover.config.ts
-```
+For safe dogfood (recommended first) set in Railway: `DRY_RUN=true` plus the variables below.
 
 ### 3) Add environment variables (required)
 

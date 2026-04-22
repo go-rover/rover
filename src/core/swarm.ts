@@ -29,10 +29,6 @@ function scoutKey() {
   return sanitizeText(process.env.GOROVER_SCOUT_KEY || config.swarm?.scoutKey || "", 600) || "";
 }
 
-function roverId() {
-  return sanitizeText(process.env.GOROVER_ROVER_ID || config.swarm?.roverId || "", 200) || null;
-}
-
 export function ensureAgentId() {
   // Keep agentId stable across runs (used for logs / optional relay correlation).
   if (config.swarm?.agentId) return config.swarm.agentId;
@@ -58,7 +54,6 @@ export async function sendBeacon(payload: {
 
   const url = new URL("/beacon", swarmBaseUrl()).toString();
 
-  const rid = roverId();
   const unsigned = {
     logs: Array.isArray(payload.logs) ? payload.logs : [],
     stakes: Array.isArray(payload.stakes) ? payload.stakes : [],
@@ -93,7 +88,7 @@ export async function sendBeacon(payload: {
 export async function fetchThresholds() {
   if (!swarmBaseUrl()) return { ok: false, error: "SWARM_NOT_CONFIGURED" };
   const url = new URL("/thresholds", swarmBaseUrl()).toString();
-  const key = scoutKey()
+  const key = scoutKey();
   const res = await fetch(url, {
     headers: {
       accept: "application/json",

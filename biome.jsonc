@@ -46,7 +46,14 @@
     }
   },
   "files": {
-    "includes": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts", "*.ts"],
-    "experimentalScannerIgnores": ["node_modules", "dist", "src/signal/**"]
+    "includes": [
+      "src/**/*.ts",
+      "tests/**/*.ts",
+      "scripts/**/*.ts",
+      "*.ts",
+      "!!**/node_modules",
+      "!!**/dist",
+      "!!**/src/signal"
+    ]
   }
 }

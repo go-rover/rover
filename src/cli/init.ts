@@ -200,10 +200,7 @@ const heliusKey = await ask(
 console.log("\n── GoRover Scout Key ─────────────────────────────────────────");
 console.log("  Get your Scout key from https://app.gorover.xyz → Rovers → New Rover");
 
-let scoutKey = await ask(
-  "Scout key (sc_...)",
-  ev("GOROVER_SCOUT_KEY", "")
-);
+let scoutKey = await ask("Scout key (sc_...)", ev("GOROVER_SCOUT_KEY", ""));
 
 if (scoutKey && !scoutKey.startsWith("sc_")) {
   console.log("  ⚠ Scout key must start with sc_ — skipping Swarm validation.");
@@ -463,8 +460,8 @@ const configContent = `import type { RoverConfig } from "./rover.config.example"
 
 export const roverConfig: RoverConfig = {
   // ─── GoRover ─────────────────────────────────────────────────────
-  vavScoutKey:  "${scoutKey || "sc_YOUR_SCOUT_KEY"}",
-  vavSwarmUrl:  "https://swarm.gorover.xyz",
+  goroverScoutKey:  "${scoutKey || "sc_YOUR_SCOUT_KEY"}",
+  goroverSwarmUrl:  "https://swarm.gorover.xyz",
 
   // ─── Wallet & RPC (loaded from .env) ─────────────────────────────
   walletKey:         process.env.WALLET_PRIVATE_KEY || "",
@@ -525,9 +522,11 @@ console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   NEXT STEP
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${fs.existsSync(CONFIG_PATH)
-  ? `  ✅ rover.config.ts already exists — not overwritten.`
-  : `  ✅ rover.config.ts generated in this folder.`}
+${
+  fs.existsSync(CONFIG_PATH)
+    ? `  ✅ rover.config.ts already exists — not overwritten.`
+    : `  ✅ rover.config.ts generated in this folder.`
+}
 
   Start your Rover:
     gorover-agent start rover.config.ts

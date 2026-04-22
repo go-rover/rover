@@ -7,15 +7,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) — Semantic Ve
 
 ## [Unreleased] — GoRover Wire (ROADMAP W3 D12)
 
+### Added
+- `railway.toml` — `start:agent` (`bun run start:agent`) untuk deploy dari repo tanpa binary npm global; build lalu start memakai `rover.config.example.ts` + env Railway
+- `package.json` → `start:agent`, `packageManager: bun@1.3.10`
+- `tests/unit/health.test.ts` — minimal unit test agar `bun run test:unit` / dogfood valid
+- `scripts/dogfood.mjs` — default `test:unit` (integrasi butuh kunci API; `DOGFOOD_INTEGRATION=1` untuk full `test`)
+
 ### Changed
-- Package renamed: `@vav/rover` → `@gorover/agent`
+- `bun run lint:fix` + `biome.jsonc` — hilangkan `experimentalScannerIgnores` deprecated
+- `README` — instruksi Railway memakai `bun run start:agent`
+- CI — job Test memakai `test:unit` (sama dogfood)
+- `src/core/swarm.ts` — hapus helper `roverId` lokal yang tidak terpakai di payload Beacon (sesuai skema Swarm saat ini)
+- Published as `@gorover/agent` (npm), CLI `gorover-agent`
 - CLI binary renamed to `gorover-agent`
 - Default Swarm URL updated to `https://swarm.gorover.xyz`
 - Env vars renamed: `VAV_SCOUT_KEY` → `GOROVER_SCOUT_KEY`, `VAV_SWARM_API_BASE` → `GOROVER_SWARM_API_BASE`, `VAV_ROVER_ID` → `GOROVER_ROVER_ID`, `VAV_DISCOVERY_API_URL` → `GOROVER_DISCOVERY_API_URL`, `VAV_DISCOVERY_API_KEY` → `GOROVER_DISCOVERY_API_KEY`
-- `rover.config.ts` fields updated: `vavScoutKey`, `vavSwarmUrl`, `vavReferralWallet` (backward compat: `scoutKey`, `swarmUrl` still work)
+- `rover.config.ts` fields: `goroverScoutKey`, `goroverSwarmUrl` (optional: `scoutKey`, `swarmUrl`); Jupiter referral = platform env only
 - `rover.config.example.ts` rewritten with GoRover branding and full safety fields
-- `RoverConfigFile` type extended: added `vavScoutKey`, `vavSwarmUrl`, `vavReferralWallet`, `llmKey`, `minBalanceSol`, `minPositionSol`, `slippageBps`, `maxPositions`, `seekerIntervalMs`, `keeperIntervalMs`, `telegramChatId`
-- `vavReferralWallet` wired to Jupiter referral account in config
+- `RoverConfigFile` type extended: `goroverScoutKey`, `goroverSwarmUrl`, `llmKey`, `minBalanceSol`, `minPositionSol`, `slippageBps`, `maxPositions`, `seekerIntervalMs`, `keeperIntervalMs`, `telegramChatId`
 - Repository, homepage, author metadata updated to gorover.xyz
 
 ---

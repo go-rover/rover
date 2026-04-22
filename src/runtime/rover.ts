@@ -2,6 +2,7 @@
 import "@/platform/console-clean";
 import "dotenv/config";
 
+import fs from "node:fs";
 import readline from "node:readline";
 import cron from "node-cron";
 import { markBeaconSent, needsDailyBeacon, shouldSendBeacon } from "@/core/beacon-guard";
@@ -13,6 +14,7 @@ import { evolveThresholds, getPerformanceSummary } from "@/core/memory";
 import { getActiveStrategy } from "@/core/playbook";
 import { recallForPool, recordPositionSnapshot } from "@/core/poollog";
 import {
+  getClosedPositions,
   getLastBriefingDate,
   getTrackedPosition,
   queuePeakConfirmation,
@@ -22,7 +24,6 @@ import {
   setLastBriefingDate,
   setPositionInstruction,
   updatePnlAndCheckExits,
-  getClosedPositions,
 } from "@/core/registry";
 import { stageSignals } from "@/core/signal-tracker";
 import { getWeightsSummary } from "@/core/signal-weights";
@@ -48,7 +49,6 @@ import { executeTool, registerCronRestarter } from "@/tools/deploy";
 import { closePosition, getActiveBin, getMyPositions } from "@/tools/pool";
 import { getTopCandidates } from "@/tools/scan";
 import { getWalletBalances } from "@/tools/treasury";
-import fs from "node:fs";
 
 log("startup", "Rover starting...");
 log("startup", `Mode: ${process.env.DRY_RUN === "true" ? "DRY RUN" : "LIVE"}`);
@@ -80,14 +80,20 @@ function buildBeaconStakesSnapshot() {
       timestamp: p.closed_at ? new Date(p.closed_at).getTime() : Date.now(),
       protocol: "meteora" as const,
       // Future-proof fields for AI analysis
-      minutesHeld: p.deployed_at && p.closed_at
-        ? Math.floor((new Date(p.closed_at).getTime() - new Date(p.deployed_at).getTime()) / 60000)
-        : undefined,
+      minutesHeld:
+        p.deployed_at && p.closed_at
+          ? Math.floor(
+              (new Date(p.closed_at).getTime() - new Date(p.deployed_at).getTime()) / 60000
+            )
+          : undefined,
       strategy: p.strategy || undefined,
       exitReason: p.notes?.[p.notes.length - 1] || undefined,
-      outOfRangeMinutes: p.out_of_range_since && p.closed_at
-        ? Math.floor((new Date(p.closed_at).getTime() - new Date(p.out_of_range_since).getTime()) / 60000)
-        : undefined,
+      outOfRangeMinutes:
+        p.out_of_range_since && p.closed_at
+          ? Math.floor(
+              (new Date(p.closed_at).getTime() - new Date(p.out_of_range_since).getTime()) / 60000
+            )
+          : undefined,
     }));
   } catch {
     return [];
@@ -920,7 +926,10 @@ Summarize the current portfolio health, total fees earned, and performance of al
             (l: any) => `[${l.outcome.toUpperCase()}] ${l.rule}`
           );
           const res = await sendBeacon({
-            logs: recentLogs.length > 0 ? recentLogs : [`health_heartbeat at ${new Date().toISOString()}`],
+            logs:
+              recentLogs.length > 0
+                ? recentLogs
+                : [`health_heartbeat at ${new Date().toISOString()}`],
             stakes,
             thresholds: {
               minApr: config.screening?.minTokenFeesSol,

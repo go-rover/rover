@@ -31,7 +31,7 @@ const DEFAULT_STRATEGIES = {
   custom_ratio_spot: {
     id: "custom_ratio_spot",
     name: "Custom Ratio Spot",
-    author: "vav",
+    author: "gorover",
     lp_strategy: "spot",
     token_criteria: { notes: "Any token. Ratio expresses directional bias." },
     entry: {
@@ -55,7 +55,7 @@ const DEFAULT_STRATEGIES = {
   single_sided_reseed: {
     id: "single_sided_reseed",
     name: "Single-Sided Bid-Ask + Re-seed",
-    author: "vav",
+    author: "gorover",
     lp_strategy: "bid_ask",
     token_criteria: { notes: "Volatile tokens with strong narrative. Must have active volume." },
     entry: {
@@ -79,7 +79,7 @@ const DEFAULT_STRATEGIES = {
   fee_compounding: {
     id: "fee_compounding",
     name: "Fee Compounding",
-    author: "vav",
+    author: "gorover",
     lp_strategy: "any",
     token_criteria: { notes: "Stable volume pools with consistent fee generation." },
     entry: {
@@ -96,7 +96,7 @@ const DEFAULT_STRATEGIES = {
   multi_layer: {
     id: "multi_layer",
     name: "Multi-Layer",
-    author: "vav",
+    author: "gorover",
     lp_strategy: "mixed",
     token_criteria: {
       notes:
@@ -131,7 +131,7 @@ const DEFAULT_STRATEGIES = {
   partial_harvest: {
     id: "partial_harvest",
     name: "Partial Harvest",
-    author: "vav",
+    author: "gorover",
     lp_strategy: "any",
     token_criteria: { notes: "High fee pools where taking profit incrementally is preferred." },
     entry: {

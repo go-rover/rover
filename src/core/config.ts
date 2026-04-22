@@ -6,7 +6,22 @@ const ROVER_CONFIG_JSON_PATH = workspacePath("rover.config.json");
 const DEFAULT_SWARM_URL = process.env.GOROVER_SWARM_URL ?? "https://swarm.gorover.xyz";
 const DEFAULT_DISCOVERY_API_URL = (process.env.GOROVER_DISCOVERY_API_URL ?? "").replace(/\/+$/, "");
 const DEFAULT_DISCOVERY_PUBLIC_KEY = process.env.GOROVER_DISCOVERY_API_KEY ?? "";
+/** Must match Swarm on-chain verify (`apps/swarm/src/verify/stakes.ts`) default when env unset. */
 const DEFAULT_JUPITER_REFERRAL = "DM11KnLdEKENRbZyfehKN3ZM2JcjW9Suops1LFFkZH3u";
+
+/**
+ * Jupiter referral account — platform-only (admin `GOROVER_REFERRAL_WALLET` on host).
+ * Intentionally NOT read from rover.config: Swarm flags txs without this wallet as
+ * referral_mismatch (silent: no Radar, AbuseLog + empty /thresholds).
+ */
+function jupiterReferralAccountFromPlatformEnv() {
+  return (
+    nonEmptyString(
+      process.env.GOROVER_REFERRAL_WALLET,
+      process.env.GOROVER_JUPITER_REFERRAL_WALLET
+    ) || DEFAULT_JUPITER_REFERRAL
+  );
+}
 
 const u = fs.existsSync(ROVER_CONFIG_JSON_PATH)
   ? JSON.parse(fs.readFileSync(ROVER_CONFIG_JSON_PATH, "utf8"))
@@ -150,9 +165,14 @@ export const config: any = {
 
   // ─── Swarm (collective sync) ─────────────────────────
   swarm: {
-    url: nonEmptyString(u.vavSwarmUrl, u.swarmUrl, process.env.GOROVER_SWARM_API_BASE, DEFAULT_SWARM_URL),
+    url: nonEmptyString(
+      u.goroverSwarmUrl,
+      u.swarmUrl,
+      process.env.GOROVER_SWARM_API_BASE,
+      DEFAULT_SWARM_URL
+    ),
     // Scout key is the auth token and the HMAC signing key.
-    scoutKey: nonEmptyString(u.vavScoutKey, u.scoutKey, process.env.GOROVER_SCOUT_KEY, ""),
+    scoutKey: nonEmptyString(u.goroverScoutKey, u.scoutKey, process.env.GOROVER_SCOUT_KEY, ""),
     agentId: u.agentId ?? null,
   },
 
@@ -172,9 +192,8 @@ export const config: any = {
   },
 
   jupiter: {
-    // Internal Jupiter Ultra settings — referral wallet is platform-controlled, not user-configurable.
     apiKey: process.env.JUPITER_API_KEY ?? "",
-    referralAccount: DEFAULT_JUPITER_REFERRAL,
+    referralAccount: jupiterReferralAccountFromPlatformEnv(),
     referralFeeBps: Number(process.env.JUPITER_REFERRAL_FEE_BPS ?? 50),
   },
 
