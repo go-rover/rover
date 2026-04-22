@@ -110,7 +110,7 @@ This is the simplest way to run Rover as a single always-on instance.
 - **New Project** → **Deploy from GitHub Repo**
 - Select your `rover` repository
 
-**Build:** this repo ships **Railpack** + `railway.toml` (`bun install` + `bun run build`). There is **no** `Dockerfile` here. If the build looks for `Dockerfile.rover`, the service was misconfigured (that path exists only in the **gorover** monorepo). In Railway → **Settings → Build**, use the default Railpack builder, or remove `RAILWAY_DOCKERFILE_PATH` / any custom Dockerfile path.
+**Build:** this repo includes a root **`Dockerfile`** (Bun + `bun run build` + `dist/cmd.js` start). On Railway, use the **Docker** builder with `dockerfilePath` = `Dockerfile` (default if `railway.toml` is used). The monorepo **gorover-app** uses different names (e.g. `Dockerfile.rover`) — do not point this service at those paths.
 
 ### 2) Set the start command
 

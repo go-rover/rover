@@ -1,17 +1,16 @@
 # Config-as-code for Railway: dogfood & production deploy from this repo.
 # Set secrets in Railway (WALLET_PRIVATE_KEY, GOROVER_SCOUT_KEY, RPC_URL, LLM_*, DRY_RUN).
-# Config file path = rover.config.example.ts; nilai real dari env (override) di applyRoverConfig.
+# Config path = rover.config.example.ts; override nilai lewat env di applyRoverConfig.
 # Docs: https://docs.railway.com/config-as-code/reference
 #
-# PENTING — beda dari monorepo gorover-app:
-#   Repo ini TIDAK punya Dockerfile.*. Build = Railpack (bun), bukan Docker.
-#   Hapus variabel RAILWAY_DOCKERFILE_PATH / dockerfilePath "Dockerfile.rover" di dashboard
-#   (itu hanya untuk service di repo gorover-app). Kalau masih ada, build akan gagal mencari file.
+# Build = Docker (lihat root Dockerfile). Bukan `Dockerfile.rover` di monorepo gorover — itu khusus gorover-app.
+# Hapus RAILWAY_DOCKERFILE_PATH lama jika menunjuk ke file yang tidak ada di repo ini.
 
 [build]
-builder = "RAILPACK"
-buildCommand = "bun install --frozen-lockfile && bun run build"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "bun run start:agent"
+# Harus selaras dengan CMD di Dockerfile (image tidak berisi `src/`, hanya `dist/`)
+startCommand = "bun dist/cmd.js start rover.config.example.ts"
 restartPolicyType = "ON_FAILURE"

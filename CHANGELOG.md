@@ -8,7 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) — Semantic Ve
 ## [Unreleased] — GoRover Wire (ROADMAP W3 D12)
 
 ### Added
-- `railway.toml` — `start:agent` (`bun run start:agent`) untuk deploy dari repo tanpa binary npm global; build lalu start memakai `rover.config.example.ts` + env Railway
+- `Dockerfile` + `.dockerignore` — image multi-stage (Bun `dist/cmd.js`); Railway `builder = DOCKERFILE`, `dockerfilePath = Dockerfile` (bukan `Dockerfile.rover` di monorepo lain)
+- `railway.toml` — build Docker + `startCommand` memakai `bun dist/cmd.js start rover.config.example.ts` (selaras CMD image; env Railway override config)
 - `package.json` → `start:agent`, `packageManager: bun@1.3.10`
 - `tests/unit/health.test.ts` — minimal unit test agar `bun run test:unit` / dogfood valid
 - `scripts/dogfood.mjs` — default `test:unit` (integrasi butuh kunci API; `DOGFOOD_INTEGRATION=1` untuk full `test`)
