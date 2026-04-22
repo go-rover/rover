@@ -172,9 +172,9 @@ export const config: any = {
   },
 
   jupiter: {
-    // Internal Jupiter Ultra settings; override via env or vavReferralWallet in rover.config.ts.
+    // Internal Jupiter Ultra settings — referral wallet is platform-controlled, not user-configurable.
     apiKey: process.env.JUPITER_API_KEY ?? "",
-    referralAccount: u.vavReferralWallet || process.env.JUPITER_REFERRAL_ACCOUNT || DEFAULT_JUPITER_REFERRAL,
+    referralAccount: DEFAULT_JUPITER_REFERRAL,
     referralFeeBps: Number(process.env.JUPITER_REFERRAL_FEE_BPS ?? 50),
   },
 

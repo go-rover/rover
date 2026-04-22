@@ -9,7 +9,7 @@ export type RoverConfigFile = {
   // GoRover dashboard fields (auto-generated — do not edit)
   vavScoutKey?: string;
   vavSwarmUrl?: string;
-  vavReferralWallet?: string;
+  // vavReferralWallet: removed — referral wallet is platform-controlled only
   roverId?: string;
 
   // Legacy field names (backward compat)

@@ -463,9 +463,8 @@ const configContent = `import type { RoverConfig } from "./rover.config.example"
 
 export const roverConfig: RoverConfig = {
   // ─── GoRover ─────────────────────────────────────────────────────
-  vavScoutKey:       "${scoutKey || "sc_YOUR_SCOUT_KEY"}",
-  vavSwarmUrl:       "https://swarm.gorover.xyz",
-  vavReferralWallet: "GOROVER_SOL_WALLET",
+  vavScoutKey:  "${scoutKey || "sc_YOUR_SCOUT_KEY"}",
+  vavSwarmUrl:  "https://swarm.gorover.xyz",
 
   // ─── Wallet & RPC (loaded from .env) ─────────────────────────────
   walletKey:         process.env.WALLET_PRIVATE_KEY || "",
