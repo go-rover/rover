@@ -11,6 +11,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) — Semantic Ve
 - `src/core/llm-resolve.ts` — auto-resolve OpenAI-compatible LLM base URL + API key from env (OpenRouter, OpenAI, Groq, Gemini, `LLM_BASE_URL` local/custom, `LLM_API_KEY` prefix heuristics); startup log line from `gorover-agent start`
 - CI hardening (Railway parity): Node `22.12.0` + Bun `1.3.13`, `workflow_dispatch` + concurrency cancel-in-progress, and Docker image build gate in CI to mirror Railway DOCKERFILE deployment
 
+### Fixed
+- `src/lib/instance-lock.ts` — stale lock detection in containers: compare `/proc/<pid>/stat` start-time and treat `existing.pid === process.pid` (typically pid=1 in Docker) as stale so Rover restarts no longer crash with `ROVER_LOCKED`
+
 ## [0.4.3] — 2026-04-23
 
 ### Added
