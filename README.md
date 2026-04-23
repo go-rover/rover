@@ -138,7 +138,7 @@ In Railway → **Variables**, set:
 
 - `WALLET_PRIVATE_KEY`: base58 private key
 - `RPC_URL`: Solana RPC URL
-- `OPENROUTER_API_KEY` (or `OPENAI_API_KEY` or `LLM_API_KEY`): one LLM key
+- One LLM credential: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` / `GEMINI_API_KEY`, or `LLM_API_KEY` (prefix picks provider) — see `src/core/llm-resolve.ts`; managed hosting can set any single supported var without hardcoding OpenRouter
 - `DRY_RUN`: `true` (start here)
 
 Recommended for server/client dogfood:

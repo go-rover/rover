@@ -679,6 +679,9 @@ switch (subcommand) {
     const { roverConfig } = await loadRoverConfig(cfgPath);
     applyRoverConfig({ roverConfig });
 
+    const { formatLlmStartupSummary } = await import("@/core/llm-resolve");
+    process.stderr.write(`[gorover-agent] LLM: ${formatLlmStartupSummary()}\n`);
+
     // ── Wallet = GoRover account (self-hosted) — match Scout.walletAddress on Swarm ─
     const scoutKey = String(process.env.GOROVER_SCOUT_KEY || "").trim();
     const pk = String(process.env.WALLET_PRIVATE_KEY || "").trim();

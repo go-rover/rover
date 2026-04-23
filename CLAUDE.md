@@ -217,10 +217,15 @@ Beacon sent after every Cycle. Includes: Logs, closed Stakes (verified on-chain)
 |-----|----------|---------|
 | `WALLET_PRIVATE_KEY` | Yes | Base58 or JSON array private key |
 | `RPC_URL` | Yes | Solana RPC endpoint (Helius recommended) |
-| `OPENROUTER_API_KEY` | Yes | LLM API key (OpenRouter) |
+| **LLM (one path)** | Yes | Auto-resolved (`src/core/llm-resolve.ts`): `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `GOOGLE_API_KEY` / `GEMINI_API_KEY`, or `LLM_API_KEY` (prefix heuristic), or `LLM_BASE_URL` + any of those keys / local `lm-studio` |
+| `OPENROUTER_API_KEY` | Alt | OpenRouter (`openrouter.ai`) |
+| `OPENAI_API_KEY` | Alt | OpenAI official API |
+| `GROQ_API_KEY` | Alt | Groq OpenAI-compatible |
+| `GOOGLE_API_KEY` / `GEMINI_API_KEY` | Alt | Gemini OpenAI-compatible endpoint |
+| `LLM_API_KEY` | Alt | Generic key; `sk-or-*` → OpenRouter, `sk-proj-*` / `sk-svcacct-*` → OpenAI, `gsk_*` → Groq, `AIza*` → Gemini, else legacy OpenRouter default |
 | `TELEGRAM_BOT_TOKEN` | No | Telegram notifications |
 | `TELEGRAM_CHAT_ID` | No | Telegram chat target |
-| `LLM_BASE_URL` | No | Override for local LLM (e.g. LM Studio) |
+| `LLM_BASE_URL` | No | Any OpenAI-compatible base (LM Studio, vLLM, etc.); keys picked in order above |
 | `LLM_MODEL` | No | Override default model |
 | `DRY_RUN` | No | Skip all on-chain transactions |
 | `GOROVER_SWARM_API_BASE` | No | Swarm base URL (default: `https://swarm.gorover.xyz`) |

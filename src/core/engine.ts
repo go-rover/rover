@@ -199,17 +199,18 @@ function getToolsForRole(agentType, goal = "") {
 
 import { config } from "@/core/config";
 import { getDecisionSummary } from "@/core/decision-log";
+import { resolveLlmConnection } from "@/core/llm-resolve";
 import { getLessonsForPrompt, getPerformanceSummary } from "@/core/memory";
 import { getStateSummary } from "@/core/registry";
 import { log } from "@/platform/logger";
 import { getMyPositions } from "@/tools/pool";
 import { getWalletBalances } from "@/tools/treasury";
 
-// Supports OpenRouter (default) or any OpenAI-compatible local server (e.g. LM Studio)
-// To use LM Studio: set LLM_BASE_URL=http://localhost:1234/v1 and LLM_API_KEY=lm-studio in .env
+// OpenRouter, OpenAI, Groq, Gemini (OpenAI-compat), or any LLM_BASE_URL — see @/core/llm-resolve
+const _llmResolved = resolveLlmConnection();
 const client = new OpenAI({
-  baseURL: process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1",
-  apiKey: process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY,
+  baseURL: _llmResolved.baseURL,
+  apiKey: _llmResolved.apiKey || undefined,
   timeout: 5 * 60 * 1000,
 });
 

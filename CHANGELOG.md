@@ -7,7 +7,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) — Semantic Ve
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- `src/core/llm-resolve.ts` — auto-resolve OpenAI-compatible LLM base URL + API key from env (OpenRouter, OpenAI, Groq, Gemini, `LLM_BASE_URL` local/custom, `LLM_API_KEY` prefix heuristics); startup log line from `gorover-agent start`
 
 ## [0.4.3] — 2026-04-23
 
