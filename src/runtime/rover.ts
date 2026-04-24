@@ -947,8 +947,9 @@ Summarize the current portfolio health, total fees earned, and performance of al
         "MANAGER"
       );
 
-      // Swarm Beacon policy (roadmap): max 6/hour, min 1/day.
-      if (isSwarmEnabled() && needsDailyBeacon()) {
+      // Swarm Beacon policy: attempt on each health cycle, but still capped by beacon-guard (max 6/hour).
+      // This keeps Rover "lastSeen" fresh for operations while preserving rate limits.
+      if (isSwarmEnabled()) {
         const allow = shouldSendBeacon();
         if (allow.ok) {
           const { sendBeacon } = await import("@/core/swarm");
@@ -973,6 +974,8 @@ Summarize the current portfolio health, total fees earned, and performance of al
             log("swarm_warn", `Beacon send failed: ${err?.message || String(err)}`)
           );
           if (res?.ok) markBeaconSent();
+        } else {
+          log("swarm", `Beacon skipped: ${allow.reason}`);
         }
       }
     } catch (error) {

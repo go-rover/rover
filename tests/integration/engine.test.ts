@@ -14,7 +14,13 @@ engineTest("engine: agent loop boot (dry-run)", async () => {
   const { agentLoop } = await import("../../src/core/engine");
 
   const result = await agentLoop("Return a one-sentence status report.", 1);
-  if (typeof result !== "string" || result.length < 1) {
+  const content =
+    typeof result === "string"
+      ? result
+      : result && typeof result === "object" && "content" in result
+        ? String((result as { content?: unknown }).content ?? "")
+        : "";
+  if (content.length < 1) {
     throw new Error("agentLoop returned empty result");
   }
 });
