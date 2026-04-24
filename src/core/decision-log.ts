@@ -63,6 +63,42 @@ export function getRecentDecisions(limit = 10) {
   return (data.decisions || []).slice(0, limit);
 }
 
+export function exportDecisionsJson(limit = 100) {
+  const decisions = getRecentDecisions(limit);
+  return JSON.stringify({ exported_at: new Date().toISOString(), count: decisions.length, decisions }, null, 2);
+}
+
+const CSV_HEADER = "id,ts,type,actor,pool,pool_name,position,summary,reason,risks,rejected,metrics\n";
+
+function csvEscape(v: string | null | undefined): string {
+  if (v == null) return "";
+  const s = String(v).replace(/"/g, '""');
+  return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s}"` : s;
+}
+
+export function exportDecisionsCsv(limit = 100): string {
+  const decisions = getRecentDecisions(limit);
+  const rows = decisions.map((d) =>
+    [
+      d.id,
+      d.ts,
+      d.type,
+      d.actor,
+      d.pool ?? "",
+      d.pool_name ?? "",
+      d.position ?? "",
+      d.summary ?? "",
+      d.reason ?? "",
+      (d.risks ?? []).join("; "),
+      (d.rejected ?? []).join("; "),
+      Object.keys(d.metrics ?? {}).length ? JSON.stringify(d.metrics) : "",
+    ]
+      .map(csvEscape)
+      .join(",")
+  );
+  return CSV_HEADER + rows.join("\n");
+}
+
 export function getDecisionSummary(limit = 6) {
   const decisions = getRecentDecisions(limit);
   if (!decisions.length) return "No recent structured decisions yet.";

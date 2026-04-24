@@ -199,6 +199,14 @@ Shows closed Stake performance history with summary stats.
 Output: { summary: { total_positions_closed, total_pnl_usd, avg_pnl_pct, win_rate_pct, total_lessons }, count, positions: [...] }
 \`\`\`
 
+### gorover-agent decisions [--limit 100] [--format json|csv] [--out <file>]
+Lists or exports structured decisions logged by the Rover (Enter/Exit/Skip/Note).
+Default: JSON to stdout. Use --format csv to get CSV. Use --out to write to a file.
+\`\`\`
+Output (json): { exported_at, count, decisions: [{id, ts, type, actor, pool, pool_name, summary, reason, risks, rejected, metrics}] }
+Output (csv): CSV with same fields, written to stdout or --out file.
+\`\`\`
+
 ### gorover-agent discord-signals [clear]
 Shows pending Discord signal queue from the Rover signal listener.
 \`\`\`
@@ -247,6 +255,8 @@ const { values: flags } = parseArgs({
     "amount-x": { type: "string" },
     "amount-y": { type: "string" },
     bps: { type: "string" },
+    out: { type: "string" },
+    format: { type: "string" },
     "no-claim": { type: "boolean" },
     "skip-swap": { type: "boolean" },
     "dry-run": { type: "boolean" },
@@ -839,6 +849,25 @@ switch (subcommand) {
     const history = getPerformanceHistory({ hours: 999999, limit });
     const summary = getPerformanceSummary();
     out({ summary, ...history });
+    break;
+  }
+
+  // ── decisions ────────────────────────────────────────────────────
+  case "decisions": {
+    const { exportDecisionsJson, exportDecisionsCsv } = await import("@/core/decision-log");
+    const limit = flags.limit ? parseInt(flags.limit, 10) : 100;
+    const format = (flags.format || "json").toLowerCase();
+    if (format !== "json" && format !== "csv") die("--format must be json or csv");
+
+    const content = format === "csv" ? exportDecisionsCsv(limit) : exportDecisionsJson(limit);
+    const outPath = flags.out;
+
+    if (outPath) {
+      fs.writeFileSync(outPath, content, "utf8");
+      out({ ok: true, format, count: limit, file: outPath });
+    } else {
+      process.stdout.write(content + "\n");
+    }
     break;
   }
 
