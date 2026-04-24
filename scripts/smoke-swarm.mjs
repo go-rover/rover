@@ -47,10 +47,14 @@ const scoutKey = requireEnv("GOROVER_SCOUT_KEY");
 // 2) beacon
 {
   const unsigned = {
-    logs: [{ at: new Date().toISOString(), level: "info", msg: "dogfood_smoke" }],
+    logs: [`dogfood_smoke_${new Date().toISOString()}`],
     stakes: [],
-    thresholds: {},
-    roverVersion: "dogfood",
+    thresholds: { preset: "moderate" },
+    version: "0.4.4",
+    protocolVersion: process.env.GOROVER_PROTOCOL_VERSION || "1.0",
+    strategyKind: process.env.GOROVER_STRATEGY_KIND || "custom",
+    strategyId: process.env.GOROVER_STRATEGY_ID || "selfhosted.bid_ask",
+    strategySpecVersion: process.env.GOROVER_STRATEGY_SPEC_VERSION || "1.0.0",
   };
   const signature = signBeacon(unsigned, scoutKey);
   const body = { ...unsigned, signature };
