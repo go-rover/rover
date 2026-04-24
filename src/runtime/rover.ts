@@ -40,6 +40,7 @@ import {
   sendHTML,
   sendMessage,
   sendMessageWithButtons,
+  setTelegramChatId,
   startPolling,
   stopPolling,
   isEnabled as telegramEnabled,
@@ -890,13 +891,19 @@ export function startCronJobs() {
     async () => {
       if (_managementBusy) return;
       timers.managementLastRun = Date.now();
-      await runManagementCycle();
+      await runManagementCycle().catch((e) =>
+        log("cron_error", `Management cron unhandled: ${e?.message || String(e)}`)
+      );
     }
   );
 
   const screenTask = cron.schedule(
     `*/${Math.max(1, config.schedule.screeningIntervalMin)} * * * *`,
-    runScreeningCycle
+    async () => {
+      await runScreeningCycle().catch((e) =>
+        log("cron_error", `Screening cron unhandled: ${e?.message || String(e)}`)
+      );
+    }
   );
 
   const healthTask = cron.schedule(`0 * * * *`, async () => {
@@ -954,7 +961,9 @@ Summarize the current portfolio health, total fees earned, and performance of al
   const briefingTask = cron.schedule(
     `0 1 * * *`,
     async () => {
-      await runBriefing();
+      await runBriefing().catch((e) =>
+        log("cron_error", `Briefing cron unhandled: ${e?.message || String(e)}`)
+      );
     },
     { timezone: "UTC" }
   );
@@ -963,7 +972,9 @@ Summarize the current portfolio health, total fees earned, and performance of al
   const briefingWatchdog = cron.schedule(
     `0 */6 * * *`,
     async () => {
-      await maybeRunMissedBriefing();
+      await maybeRunMissedBriefing().catch((e) =>
+        log("cron_error", `Briefing watchdog unhandled: ${e?.message || String(e)}`)
+      );
     },
     { timezone: "UTC" }
   );
@@ -1484,6 +1495,8 @@ function formatHelpText() {
     "Telegram commands",
     "",
     "/help — show commands",
+    "/d — show Telegram chat/user identifiers",
+    "/setchat — set current chat as TELEGRAM_CHAT_ID",
     "/status — wallet + positions snapshot",
     "/wallet — wallet, deploy amount, Swarm status",
     "/positions — list open positions",
@@ -1621,6 +1634,38 @@ async function telegramHandler(msg) {
 
   if (text === "/help") {
     await sendMessage(formatHelpText()).catch(() => {});
+    return;
+  }
+
+  if (text === "/d" || text === "/id" || text === "/chatid") {
+    const chatId = msg?.chat?.id != null ? String(msg.chat.id) : "unknown";
+    const userId = msg?.from?.id != null ? String(msg.from.id) : "unknown";
+    const chatType = msg?.chat?.type || "unknown";
+    await sendMessage(
+      [
+        "Telegram identifiers",
+        `chat_id: ${chatId}`,
+        `user_id: ${userId}`,
+        `chat_type: ${chatType}`,
+      ].join("\n")
+    ).catch(() => {});
+    return;
+  }
+
+  if (text === "/setchat") {
+    const targetChatId = msg?.chat?.id != null ? String(msg.chat.id) : null;
+    if (!targetChatId) {
+      await sendMessage("Failed to detect chat_id from this message.").catch(() => {});
+      return;
+    }
+    const result = setTelegramChatId(targetChatId);
+    if (!result.success) {
+      await sendMessage(`Failed to set chat_id: ${result.error}`).catch(() => {});
+      return;
+    }
+    await sendMessage(
+      `✅ chat_id saved: ${targetChatId}\nFuture notifications and commands are now bound to this chat.`
+    ).catch(() => {});
     return;
   }
 

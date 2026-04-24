@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 
 type BeaconState = {
   lastSentAt?: string | null;
@@ -29,7 +29,7 @@ function loadState(): BeaconState {
 
 function saveState(state: BeaconState) {
   try {
-    fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
+    writeFileAtomic(STATE_PATH, JSON.stringify(state, null, 2));
   } catch {
     // ignore
   }

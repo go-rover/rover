@@ -9,6 +9,7 @@ import "dotenv/config";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { writeFileAtomic } from "@/lib/paths";
 import { parseArgs } from "node:util";
 
 // ─── DRY_RUN must be set before any tool imports ─────────────────
@@ -864,7 +865,7 @@ switch (subcommand) {
     if (sub2 === "clear") {
       // Remove processed/old signals (keep pending ones)
       const pending = signals.filter((s) => s.status === "pending");
-      fs.writeFileSync(sigFile, JSON.stringify(pending, null, 2));
+      writeFileAtomic(sigFile, JSON.stringify(pending, null, 2));
       out({ cleared: signals.length - pending.length, remaining: pending.length });
       break;
     }

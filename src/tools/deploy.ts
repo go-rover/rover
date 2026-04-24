@@ -2,6 +2,9 @@
 
 import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
+import readline from "node:readline";
+import { PublicKey } from "@solana/web3.js";
+import { writeFileAtomic } from "@/lib/paths";
 import { addToBlacklist, listBlacklist, removeFromBlacklist } from "@/core/blocklist";
 import { config } from "@/core/config";
 import { getRecentDecisions } from "@/core/decision-log";
@@ -50,6 +53,9 @@ import { discoverPools, getPoolDetail, getTopCandidates } from "@/tools/scan";
 import { getWalletBalances, swapToken } from "@/tools/treasury";
 
 const USER_CONFIG_PATH = paths.userConfigJson();
+const LIVE_TX_CONFIRM_PATH = paths.root ? `${paths.root}/.live-tx-confirmed` : ".live-tx-confirmed";
+let _liveTxConfirmedCache = false;
+let _liveTxPromptInFlight: Promise<boolean> | null = null;
 
 // Registered by index.js so update_config can restart cron jobs when intervals change
 let _cronRestarter = null;
@@ -244,6 +250,7 @@ const toolMap = {
       minTokenAgeHours: ["screening", "minTokenAgeHours"],
       maxTokenAgeHours: ["screening", "maxTokenAgeHours"],
       athFilterPct: ["screening", "athFilterPct"],
+      rugcheckMaxRiskScore: ["screening", "rugcheckMaxRiskScore"],
       minFeePerTvl24h: ["management", "minFeePerTvl24h"],
       // management
       minClaimAmount: ["management", "minClaimAmount"],
@@ -382,7 +389,7 @@ const toolMap = {
       }
     }
     userConfig._lastAgentTune = new Date().toISOString();
-    fs.writeFileSync(USER_CONFIG_PATH, JSON.stringify(userConfig, null, 2));
+    writeFileAtomic(USER_CONFIG_PATH, JSON.stringify(userConfig, null, 2));
 
     // Restart cron jobs if intervals changed
     const intervalChanged =
@@ -429,6 +436,16 @@ export async function executeTool(name, args) {
     log("error", error);
     return { error };
   }
+
+  const sanitizedArgs = sanitizeToolArgs(name, args || {});
+  if (!sanitizedArgs.pass) {
+    log("input_block", `${name} blocked: ${sanitizedArgs.reason}`);
+    return {
+      blocked: true,
+      reason: sanitizedArgs.reason,
+    };
+  }
+  args = sanitizedArgs.args;
 
   // ─── Pre-execution safety checks ──────────
   if (PROTECTED_TOOLS.has(name)) {
@@ -564,10 +581,86 @@ export async function executeTool(name, args) {
   }
 }
 
+function sanitizeToolArgs(name, args) {
+  const copy = { ...args };
+
+  const addressFieldsByTool: Record<string, string[]> = {
+    deploy_position: ["pool_address", "base_mint"],
+    close_position: ["position_address", "pool_address"],
+    claim_fees: ["position_address"],
+    get_active_bin: ["pool_address"],
+    get_position_pnl: ["pool_address", "position_address"],
+    swap_token: ["input_mint", "output_mint"],
+    search_pools: [],
+  };
+
+  const numericFieldsByTool: Record<string, string[]> = {
+    deploy_position: ["amount_sol", "amount_x", "amount_y", "bins_below", "bins_above"],
+    swap_token: ["amount", "slippage_bps"],
+  };
+
+  const addressFields = addressFieldsByTool[name] || [];
+  for (const field of addressFields) {
+    const value = copy[field];
+    if (value == null || value === "") continue;
+    const normalized = String(value).trim();
+    if (normalized.toUpperCase() === "SOL") continue;
+    if (!isValidSolanaAddress(normalized)) {
+      return {
+        pass: false,
+        reason: `${field} is not a valid Solana address: ${normalized}`,
+      };
+    }
+    copy[field] = normalized;
+  }
+
+  const numericFields = numericFieldsByTool[name] || [];
+  for (const field of numericFields) {
+    const value = copy[field];
+    if (value == null || value === "") continue;
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      return {
+        pass: false,
+        reason: `${field} must be a finite number`,
+      };
+    }
+    if (["amount", "amount_sol", "amount_x", "amount_y"].includes(field) && n <= 0) {
+      return {
+        pass: false,
+        reason: `${field} must be > 0`,
+      };
+    }
+    if (["bins_below", "bins_above", "slippage_bps"].includes(field) && n < 0) {
+      return {
+        pass: false,
+        reason: `${field} must be >= 0`,
+      };
+    }
+    copy[field] = n;
+  }
+
+  return { pass: true, args: copy };
+}
+
+function isValidSolanaAddress(value) {
+  try {
+    new PublicKey(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Run safety checks before executing write operations.
  */
 async function runSafetyChecks(name, args) {
+  if (WRITE_TOOLS.has(name)) {
+    const liveGate = await ensureLiveTransactionConfirmed(name);
+    if (!liveGate.pass) return liveGate;
+  }
+
   switch (name) {
     case "deploy_position": {
       // Reject pools with bin_step out of configured range
@@ -673,6 +766,76 @@ async function runSafetyChecks(name, args) {
     default:
       return { pass: true };
   }
+}
+
+async function ensureLiveTransactionConfirmed(toolName) {
+  if (process.env.DRY_RUN === "true") return { pass: true };
+  if (process.env.ROVER_LIVE_TX_CONFIRMED === "true") return { pass: true };
+  if (_liveTxConfirmedCache) return { pass: true };
+
+  if (fs.existsSync(LIVE_TX_CONFIRM_PATH)) {
+    _liveTxConfirmedCache = true;
+    return { pass: true };
+  }
+
+  if (!process.stdin.isTTY) {
+    return {
+      pass: false,
+      reason:
+        `Live transaction blocked for ${toolName}. First live action requires interactive confirmation. ` +
+        `Run in TTY and type "confirm", or set ROVER_LIVE_TX_CONFIRMED=true explicitly.`,
+    };
+  }
+
+  if (!_liveTxPromptInFlight) {
+    _liveTxPromptInFlight = promptLiveConfirmation().finally(() => {
+      _liveTxPromptInFlight = null;
+    });
+  }
+
+  const confirmed = await _liveTxPromptInFlight;
+  if (!confirmed) {
+    return {
+      pass: false,
+      reason:
+        `Live transaction blocked for ${toolName}. Confirmation not provided (expected exact word: confirm).`,
+    };
+  }
+
+  _liveTxConfirmedCache = true;
+  writeFileAtomic(
+    LIVE_TX_CONFIRM_PATH,
+    JSON.stringify(
+      {
+        confirmed_at: new Date().toISOString(),
+        note: "User confirmed first live transaction by typing confirm.",
+      },
+      null,
+      2
+    )
+  );
+
+  return { pass: true };
+}
+
+async function promptLiveConfirmation() {
+  const question =
+    '\n[SAFETY GATE] DRY_RUN=false. First live transaction requires confirmation.\nType "confirm" to continue: ';
+  const answer = await askQuestion(question);
+  return String(answer || "").trim() === "confirm";
+}
+
+function askQuestion(prompt) {
+  return new Promise<string>((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    rl.question(prompt, (value) => {
+      rl.close();
+      resolve(value);
+    });
+  });
 }
 
 /**

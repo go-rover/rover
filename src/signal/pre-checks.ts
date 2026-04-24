@@ -132,7 +132,11 @@ export async function deployerCheck(poolAddress) {
   if (!fs.existsSync(file)) return { pass: true };
   try {
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
-    const blocked = data.addresses || [];
+    const blocked = Array.isArray(data.addresses)
+      ? data.addresses
+      : data.blocked && typeof data.blocked === "object"
+        ? Object.keys(data.blocked)
+        : [];
     if (blocked.length === 0) return { pass: true };
 
     // Fetch pool creator from Meteora API

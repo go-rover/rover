@@ -88,6 +88,8 @@ export const config: any = {
     minTokenAgeHours: u.minTokenAgeHours ?? null, // null = no minimum
     maxTokenAgeHours: u.maxTokenAgeHours ?? null, // null = no maximum
     athFilterPct: u.athFilterPct ?? null, // e.g. -20 = only deploy if price is >= 20% below ATH
+    rugcheckMaxRiskScore:
+      u.rugcheckMaxRiskScore ?? Number(process.env.RUGCHECK_MAX_RISK_SCORE || 80),
   },
 
   // ─── Position Management ────────────────
@@ -289,6 +291,7 @@ export function reloadScreeningThresholds() {
     if (fresh.minTokenAgeHours !== undefined) s.minTokenAgeHours = fresh.minTokenAgeHours;
     if (fresh.maxTokenAgeHours !== undefined) s.maxTokenAgeHours = fresh.maxTokenAgeHours;
     if (fresh.athFilterPct !== undefined) s.athFilterPct = fresh.athFilterPct;
+    if (fresh.rugcheckMaxRiskScore != null) s.rugcheckMaxRiskScore = fresh.rugcheckMaxRiskScore;
     if (fresh.maxBundlePct != null) s.maxBundlePct = fresh.maxBundlePct;
     if (fresh.avoidPvpSymbols !== undefined) s.avoidPvpSymbols = fresh.avoidPvpSymbols;
     if (fresh.blockPvpSymbols !== undefined) s.blockPvpSymbols = fresh.blockPvpSymbols;

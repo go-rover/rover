@@ -10,6 +10,8 @@ import { confirmIndicatorPreset } from "@/tools/chart-indicators";
 import { getMyPositions } from "@/tools/pool";
 
 const DATAPI_JUP = "https://datapi.jup.ag/v1";
+const RUGCHECK_BASE = "https://api.rugcheck.xyz/v1";
+const RUGCHECK_TIMEOUT_MS = Number(process.env.RUGCHECK_TIMEOUT_MS || 6000);
 
 const POOL_DISCOVERY_BASE = "https://pool-discovery-api.datapi.meteora.ag";
 const PVP_SHORTLIST_LIMIT = 2;
@@ -30,6 +32,43 @@ function scoreCandidate(pool) {
   const volume = Number(pool.volume_window || 0);
   const holders = Number(pool.holders || 0);
   return feeTvl * 1000 + organic * 10 + volume / 100 + holders / 100;
+}
+
+async function fetchRugcheckSummary(mint) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RUGCHECK_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${RUGCHECK_BASE}/tokens/${mint}/report/summary`, {
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`rugcheck ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function parseRugcheck(summary) {
+  const scoreRaw =
+    summary?.score ??
+    summary?.risk_score ??
+    summary?.riskScore ??
+    summary?.risk?.score ??
+    null;
+  const score = Number(scoreRaw);
+  const riskLevel = String(
+    summary?.risk_level ??
+      summary?.riskLevel ??
+      summary?.risk?.level ??
+      summary?.level ??
+      ""
+  ).toUpperCase();
+  const rugged = Boolean(summary?.rugged ?? summary?.is_rugged ?? summary?.isRugged);
+  return {
+    score: Number.isFinite(score) ? score : null,
+    riskLevel: riskLevel || null,
+    rugged,
+  };
 }
 
 async function fetchDiscordSignalCandidates() {
@@ -334,6 +373,57 @@ export async function getTopCandidates({ limit = 10 } = {}) {
       if (eligible.length < before) {
         log("screening", `PVP hard filter removed ${before - eligible.length} pool(s)`);
       }
+    }
+  }
+
+  // RugCheck filter (safe mode): reject obvious high-risk/rugged tokens, no auto-blocklist writes.
+  if (eligible.length > 0) {
+    const rugcheckResults = await Promise.allSettled(
+      eligible.map(async (pool) => {
+        const mint = pool.base?.mint;
+        if (!mint) return { pool: pool.pool, score: null, riskLevel: null, rugged: false };
+        const summary = await fetchRugcheckSummary(mint);
+        const parsed = parseRugcheck(summary);
+        return { pool: pool.pool, ...parsed };
+      })
+    );
+    const rugByPool = new Map();
+    for (const result of rugcheckResults) {
+      if (result.status !== "fulfilled") continue;
+      rugByPool.set(result.value.pool, result.value);
+    }
+
+    const before = eligible.length;
+    const filtered = eligible.filter((pool) => {
+      const rug = rugByPool.get(pool.pool);
+      if (!rug) return true;
+      pool.rugcheck_risk_score = rug.score;
+      pool.rugcheck_risk_level = rug.riskLevel;
+      pool.rugcheck_rugged = rug.rugged;
+
+      if (rug.rugged) {
+        pushFilteredReason(filteredOut, pool, "rugcheck flagged rugged token");
+        log("screening", `RugCheck dropped ${pool.name} — rugged=true`);
+        return false;
+      }
+      const maxRiskScore = Number(config.screening.rugcheckMaxRiskScore ?? 80);
+      if (rug.score != null && rug.score >= maxRiskScore) {
+        pushFilteredReason(
+          filteredOut,
+          pool,
+          `rugcheck risk score ${rug.score} >= ${maxRiskScore}`
+        );
+        log(
+          "screening",
+          `RugCheck dropped ${pool.name} — risk score ${rug.score} (threshold ${maxRiskScore})`
+        );
+        return false;
+      }
+      return true;
+    });
+    eligible.splice(0, eligible.length, ...filtered);
+    if (eligible.length < before) {
+      log("screening", `RugCheck removed ${before - eligible.length} candidate(s)`);
     }
   }
 

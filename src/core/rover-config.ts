@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { paths, workspacePath } from "@/lib/paths";
+import { paths, workspacePath, writeFileAtomic } from "@/lib/paths";
 
 export type RoverPreset = "conservative" | "moderate" | "aggressive" | "safe" | "degen";
 
@@ -106,7 +106,7 @@ export function applyRoverConfig({ roverConfig }: { roverConfig: RoverConfigFile
   // Persist a snapshot for synchronous config loading.
   const jsonPath = workspacePath("rover.config.json");
   try {
-    fs.writeFileSync(jsonPath, JSON.stringify(roverConfig, null, 2));
+    writeFileAtomic(jsonPath, JSON.stringify(roverConfig, null, 2));
   } catch {
     // ignore
   }
@@ -130,7 +130,7 @@ export function applyRoverConfig({ roverConfig }: { roverConfig: RoverConfigFile
     protocolVersion: roverConfig.protocolVersion,
   };
   try {
-    fs.writeFileSync(paths.userConfigJson(), JSON.stringify(legacy, null, 2));
+    writeFileAtomic(paths.userConfigJson(), JSON.stringify(legacy, null, 2));
   } catch {
     // ignore
   }

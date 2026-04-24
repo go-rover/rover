@@ -9,7 +9,7 @@
 // @ts-nocheck
 import fs from "node:fs";
 import { getSharedLessonsForPrompt, pushPerformanceEvent, pushSharedLesson } from "@/core/swarm";
-import { paths, workspacePath } from "@/lib/paths";
+import { paths, workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const USER_CONFIG_PATH = paths.userConfigJson();
@@ -42,7 +42,7 @@ function load() {
 }
 
 function save(data) {
-  fs.writeFileSync(LESSONS_FILE, JSON.stringify(data, null, 2));
+  writeFileAtomic(LESSONS_FILE, JSON.stringify(data, null, 2));
 }
 
 // ─── Record Position Performance ──────────────────────────────
@@ -418,7 +418,7 @@ export function evolveThresholds(perfData, config) {
   userConfig._lastEvolved = new Date().toISOString();
   userConfig._positionsAtEvolution = perfData.length;
 
-  fs.writeFileSync(USER_CONFIG_PATH, JSON.stringify(userConfig, null, 2));
+  writeFileAtomic(USER_CONFIG_PATH, JSON.stringify(userConfig, null, 2));
 
   // Apply to live config object immediately
   const s = config.screening;

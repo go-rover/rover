@@ -7,7 +7,7 @@
 
 // @ts-nocheck
 import fs from "node:fs";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const BLACKLIST_FILE = workspacePath("blocklist.json");
@@ -23,7 +23,7 @@ function load() {
 }
 
 function save(data) {
-  fs.writeFileSync(BLACKLIST_FILE, JSON.stringify(data, null, 2));
+  writeFileAtomic(BLACKLIST_FILE, JSON.stringify(data, null, 2));
 }
 
 // ─── Check ─────────────────────────────────────────────────────

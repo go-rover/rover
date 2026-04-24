@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const DECISION_LOG_FILE = "./decision-log.json";
@@ -17,7 +18,7 @@ function load() {
 }
 
 function save(data) {
-  fs.writeFileSync(DECISION_LOG_FILE, JSON.stringify(data, null, 2));
+  writeFileAtomic(DECISION_LOG_FILE, JSON.stringify(data, null, 2));
 }
 
 function sanitize(value, maxLen = 280) {

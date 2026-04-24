@@ -552,8 +552,12 @@ export async function agentLoop(
         continue;
       }
 
-      // For other errors, break the loop
-      throw error;
+      // Non-retriable error — abort cycle gracefully, caller handles the failure
+      return {
+        content: `Cycle aborted at step ${step + 1}: ${error.message}`,
+        userMessage: goal,
+        error: error.message,
+      };
     }
   }
 

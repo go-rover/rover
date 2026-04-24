@@ -1,0 +1,4 @@
+{
+  "_note": "Known farm/rug deployers. Add wallet addresses here to hard-block their pools before LLM screening.",
+  "blocked": {}
+}

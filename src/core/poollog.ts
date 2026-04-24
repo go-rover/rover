@@ -8,7 +8,7 @@
 // @ts-nocheck
 import fs from "node:fs";
 import { config } from "@/core/config";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const POOL_MEMORY_FILE = workspacePath("poollog.json");
@@ -35,7 +35,7 @@ function load() {
 }
 
 function save(data) {
-  fs.writeFileSync(POOL_MEMORY_FILE, JSON.stringify(data, null, 2));
+  writeFileAtomic(POOL_MEMORY_FILE, JSON.stringify(data, null, 2));
 }
 
 function isOorCloseReason(reason) {

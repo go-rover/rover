@@ -8,23 +8,110 @@
 
 // @ts-nocheck
 import fs from "node:fs";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
-const BLOCKLIST_FILE = workspacePath("dev-blocklist.json");
+const BLOCKLIST_FILE = workspacePath("deployer-blacklist.json");
+const LEGACY_BLOCKLIST_FILE = workspacePath("dev-blocklist.json");
 
-function load() {
-  if (!fs.existsSync(BLOCKLIST_FILE)) return {};
+function defaultSeedAddresses() {
+  return String(process.env.ROVER_KNOWN_RUGGER_DEPLOYERS || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function normalize(raw) {
+  if (!raw || typeof raw !== "object") return {};
+
+  // New/canonical format: { blocked: { [wallet]: metadata } }
+  if (raw.blocked && typeof raw.blocked === "object" && !Array.isArray(raw.blocked)) {
+    return raw.blocked;
+  }
+
+  // Legacy format from README docs: { addresses: ["..."] }
+  if (Array.isArray(raw.addresses)) {
+    const migrated = {};
+    for (const wallet of raw.addresses) {
+      const addr = String(wallet || "").trim();
+      if (!addr) continue;
+      migrated[addr] = {
+        label: "known_rugger",
+        reason: "legacy deployer-blacklist seed",
+        added_at: new Date().toISOString(),
+      };
+    }
+    return migrated;
+  }
+
+  // Old map format used by tools: { [wallet]: metadata }
+  return raw;
+}
+
+function readFileOrEmpty(file) {
+  if (!fs.existsSync(file)) return {};
   try {
-    return JSON.parse(fs.readFileSync(BLOCKLIST_FILE, "utf8"));
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (error) {
-    log("dev_blocklist_error", `Invalid ${BLOCKLIST_FILE}: ${error.message}`);
-    throw new Error(`Safety blocklist is unreadable: ${BLOCKLIST_FILE}`);
+    log("dev_blocklist_error", `Invalid ${file}: ${error.message}`);
+    throw new Error(`Safety blocklist is unreadable: ${file}`);
   }
 }
 
+function ensureSeededBlocklist() {
+  const fromCanonical = normalize(readFileOrEmpty(BLOCKLIST_FILE));
+  const fromLegacy = normalize(readFileOrEmpty(LEGACY_BLOCKLIST_FILE));
+
+  const merged = { ...fromLegacy, ...fromCanonical };
+  for (const wallet of defaultSeedAddresses()) {
+    if (merged[wallet]) continue;
+    merged[wallet] = {
+      label: "known_rugger",
+      reason: "seeded from ROVER_KNOWN_RUGGER_DEPLOYERS",
+      added_at: new Date().toISOString(),
+    };
+  }
+
+  const payload = {
+    _note:
+      "Known farm/rug deployers. Add wallet addresses here to hard-block their pools before LLM screening.",
+    blocked: merged,
+  };
+  const serialized = JSON.stringify(payload, null, 2);
+  const current =
+    fs.existsSync(BLOCKLIST_FILE) ? fs.readFileSync(BLOCKLIST_FILE, "utf8") : null;
+  if (current !== serialized) {
+    writeFileAtomic(BLOCKLIST_FILE, serialized);
+  }
+
+  if (fs.existsSync(LEGACY_BLOCKLIST_FILE)) {
+    try {
+      fs.unlinkSync(LEGACY_BLOCKLIST_FILE);
+    } catch {
+      // Keep running even if cleanup fails.
+    }
+  }
+}
+
+function load() {
+  ensureSeededBlocklist();
+  const raw = readFileOrEmpty(BLOCKLIST_FILE);
+  return normalize(raw);
+}
+
 function save(data) {
-  fs.writeFileSync(BLOCKLIST_FILE, JSON.stringify(data, null, 2));
+  writeFileAtomic(
+    BLOCKLIST_FILE,
+    JSON.stringify(
+      {
+        _note:
+          "Known farm/rug deployers. Add wallet addresses here to hard-block their pools before LLM screening.",
+        blocked: data,
+      },
+      null,
+      2
+    )
+  );
 }
 
 export function isDevBlocked(devWallet) {

@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const WALLETS_PATH = workspacePath("tracker.json");
@@ -14,7 +14,7 @@ function loadWallets() {
 }
 
 function saveWallets(data) {
-  fs.writeFileSync(WALLETS_PATH, JSON.stringify(data, null, 2));
+  writeFileAtomic(WALLETS_PATH, JSON.stringify(data, null, 2));
 }
 
 const SOLANA_PUBKEY_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;

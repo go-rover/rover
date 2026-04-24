@@ -10,7 +10,7 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import { Client } from "discord.js-selfbot-v13";
-import { paths, workspacePath } from "@/lib/paths";
+import { paths, workspacePath, writeFileAtomic } from "@/lib/paths";
 
 const require = createRequire(import.meta.url);
 const dotenv = require("dotenv");
@@ -47,7 +47,7 @@ function saveSignal(record) {
   const signals = loadSignals();
   signals.unshift(record); // newest first
   // Keep last 100 signals
-  fs.writeFileSync(SIGNALS_FILE, JSON.stringify(signals.slice(0, 100), null, 2));
+  writeFileAtomic(SIGNALS_FILE, JSON.stringify(signals.slice(0, 100), null, 2));
 }
 
 async function processAddress(address, message) {

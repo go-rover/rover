@@ -1,6 +1,6 @@
 // @ts-nocheck
 import fs from "node:fs";
-import { paths } from "@/lib/paths";
+import { paths, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const USER_CONFIG_PATH = paths.userConfigJson();
@@ -13,6 +13,12 @@ const ALLOWED_USER_IDS = new Set(
     .map((id) => id.trim())
     .filter(Boolean)
 );
+
+if (TOKEN && ALLOWED_USER_IDS.size === 0) {
+  throw new Error(
+    "TELEGRAM_ALLOWED_USER_IDS must be set when Telegram bot is enabled. Refusing to start."
+  );
+}
 
 let chatId = process.env.TELEGRAM_CHAT_ID || null;
 let _offset = 0;
@@ -39,7 +45,7 @@ function _saveChatId(id) {
       ? JSON.parse(fs.readFileSync(USER_CONFIG_PATH, "utf8"))
       : {};
     cfg.telegramChatId = id;
-    fs.writeFileSync(USER_CONFIG_PATH, JSON.stringify(cfg, null, 2));
+    writeFileAtomic(USER_CONFIG_PATH, JSON.stringify(cfg, null, 2));
   } catch (e) {
     log("telegram_error", `Failed to persist chatId: ${e.message}`);
   }
@@ -51,8 +57,28 @@ function isAuthorizedIncomingMessage(msg) {
   const incomingChatId = String(msg.chat?.id || "");
   const senderUserId = msg.from?.id != null ? String(msg.from.id) : null;
   const chatType = msg.chat?.type || "unknown";
+  const text = String(msg.text || "")
+    .trim()
+    .toLowerCase();
+  const bootstrapCommand =
+    text === "/d" ||
+    text === "/id" ||
+    text === "/chatid" ||
+    text === "/setchat" ||
+    text === "/start";
 
   if (!chatId) {
+    // Bootstrap escape hatch: allow explicit ID lookup commands from allowed users
+    // in private chats so operators can discover chat_id before persisting it.
+    if (
+      chatType === "private" &&
+      bootstrapCommand &&
+      senderUserId &&
+      ALLOWED_USER_IDS.has(senderUserId)
+    ) {
+      return true;
+    }
+
     if (!_warnedMissingChatId) {
       log(
         "telegram_warn",
@@ -169,6 +195,14 @@ export async function answerCallbackQuery(callbackQueryId, text = "") {
     callback_query_id: callbackQueryId,
     ...(text ? { text: String(text).slice(0, 200) } : {}),
   });
+}
+
+export function setTelegramChatId(id) {
+  const normalized = String(id || "").trim();
+  if (!normalized) return { success: false, error: "chat_id is empty" };
+  chatId = normalized;
+  _saveChatId(normalized);
+  return { success: true, chat_id: normalized };
 }
 
 export function hasActiveLiveMessage() {

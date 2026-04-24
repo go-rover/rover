@@ -10,7 +10,7 @@
 
 // @ts-nocheck
 import fs from "node:fs";
-import { workspacePath } from "@/lib/paths";
+import { workspacePath, writeFileAtomic } from "@/lib/paths";
 import { log } from "@/platform/logger";
 
 const STATE_FILE = workspacePath("registry.json");
@@ -44,7 +44,7 @@ function load() {
 function save(state) {
   try {
     state.lastUpdated = new Date().toISOString();
-    fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+    writeFileAtomic(STATE_FILE, JSON.stringify(state, null, 2));
   } catch (err) {
     log("state_error", `Failed to write registry.json: ${err.message}`);
   }
