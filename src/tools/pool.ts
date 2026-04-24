@@ -1826,7 +1826,9 @@ export async function closePosition({ position_address, reason }) {
       recordCloseTelemetry(position_address, {
         feeEarnedUsd: feesUsd,
         exitReason: reason || "agent decision",
-        slippageBps: null,
+        // Non-relay SDK close path does not perform an aggregator swap leg here,
+        // so execution slippage is treated as 0 bps for canonical telemetry.
+        slippageBps: 0,
       });
 
       appendDecision({
