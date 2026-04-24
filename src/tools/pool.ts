@@ -20,6 +20,7 @@ import {
   minutesOutOfRange,
   recordClaim,
   recordClose,
+  recordCloseTelemetry,
   syncOpenPositions,
   trackPosition,
 } from "@/core/registry";
@@ -1371,6 +1372,7 @@ export async function closePosition({ position_address, reason }) {
       const livePosition = livePositions?.positions?.find(
         (position) => position.position === position_address
       );
+      const relaySlippageBps = 5000;
       const closeFromBinId = livePosition?.lower_bin ?? tracked?.bin_range?.min ?? -887272;
       const closeToBinId = livePosition?.upper_bin ?? tracked?.bin_range?.max ?? 887272;
       const closeOutput = "allToken1";
@@ -1394,7 +1396,7 @@ export async function closePosition({ position_address, reason }) {
           positionId: position_address,
           owner: wallet.publicKey.toString(),
           bps: 10000,
-          slippageBps: 5000,
+          slippageBps: relaySlippageBps,
           output: closeOutput,
           provider: "OKX",
           type: "meteora",
@@ -1522,6 +1524,11 @@ export async function closePosition({ position_address, reason }) {
           minutes_in_range: minutesHeld - minutesOOR,
           minutes_held: minutesHeld,
           close_reason: reason || "agent decision",
+        });
+        recordCloseTelemetry(position_address, {
+          feeEarnedUsd: feesUsd,
+          exitReason: reason || "agent decision",
+          slippageBps: relaySlippageBps,
         });
 
         appendDecision({
@@ -1814,6 +1821,12 @@ export async function closePosition({ position_address, reason }) {
         minutes_in_range: minutesHeld - minutesOOR,
         minutes_held: minutesHeld,
         close_reason: reason || "agent decision",
+      });
+      // SDK close path currently has no direct realized slippage source.
+      recordCloseTelemetry(position_address, {
+        feeEarnedUsd: feesUsd,
+        exitReason: reason || "agent decision",
+        slippageBps: null,
       });
 
       appendDecision({

@@ -199,6 +199,32 @@ export function recordClose(position_address, reason, { closeTxs = [] } = {}) {
 }
 
 /**
+ * Attach close telemetry after execution settles.
+ * This is used by Beacon snapshots for canonical trust metrics.
+ */
+export function recordCloseTelemetry(
+  position_address,
+  { feeEarnedUsd, exitReason, slippageBps } = {}
+) {
+  const state = load();
+  const pos = state.positions[position_address];
+  if (!pos) return;
+  pos.close_telemetry = {
+    fee_earned_usd:
+      typeof feeEarnedUsd === "number" && Number.isFinite(feeEarnedUsd)
+        ? Math.round(feeEarnedUsd * 100) / 100
+        : null,
+    exit_reason: exitReason ? String(exitReason) : null,
+    slippage_bps:
+      typeof slippageBps === "number" && Number.isFinite(slippageBps)
+        ? Math.round(slippageBps * 100) / 100
+        : null,
+    recorded_at: new Date().toISOString(),
+  };
+  save(state);
+}
+
+/**
  * Set a persistent instruction for a position (e.g. "hold until 5% profit").
  * Overwrites any previous instruction. Pass null to clear.
  */

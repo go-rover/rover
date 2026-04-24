@@ -116,7 +116,23 @@ function buildBeaconStakesSnapshot() {
           // Future-proof fields for AI analysis
           minutesHeld,
           strategy: p.strategy || undefined,
-          exitReason: p.notes?.[p.notes.length - 1] || undefined,
+          exitReason:
+            p.close_telemetry?.exit_reason ||
+            p.notes?.[p.notes.length - 1] ||
+            undefined,
+          feeEarnedUsd:
+            typeof p.close_telemetry?.fee_earned_usd === "number" &&
+            Number.isFinite(p.close_telemetry.fee_earned_usd)
+              ? p.close_telemetry.fee_earned_usd
+              : typeof p.total_fees_claimed_usd === "number" &&
+                  Number.isFinite(p.total_fees_claimed_usd)
+                ? p.total_fees_claimed_usd
+                : undefined,
+          slippageBps:
+            typeof p.close_telemetry?.slippage_bps === "number" &&
+            Number.isFinite(p.close_telemetry.slippage_bps)
+              ? p.close_telemetry.slippage_bps
+              : undefined,
           outOfRangeMinutes,
         };
       })
