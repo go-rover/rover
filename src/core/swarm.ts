@@ -26,7 +26,11 @@ function swarmBaseUrl() {
 
 function scoutKey() {
   // Swarm uses the Scout key for both auth and HMAC signature verification.
-  return sanitizeText(process.env.GOROVER_SCOUT_KEY || config.swarm?.scoutKey || "", 600) || "";
+  const key = sanitizeText(process.env.GOROVER_SCOUT_KEY || config.swarm?.scoutKey || "", 600) || "";
+  if (key) {
+    process.stderr.write(`[gorover-agent] Swarm key loaded: ${key.slice(0, 8)}...\n`);
+  }
+  return key;
 }
 
 function swarmHeaders() {
