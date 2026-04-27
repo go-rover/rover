@@ -30,7 +30,7 @@ export async function assertWalletMatchesScoutOnSwarm(opts: {
 
   const base = String(opts.swarmBaseUrl || "")
     .trim()
-    .replace(/\/+$/, "");
+    .replace(/\/+$/, "") + "/";
   if (!base) {
     throw new Error("Swarm base URL missing (goroverSwarmUrl / GOROVER_SWARM_API_BASE).");
   }
